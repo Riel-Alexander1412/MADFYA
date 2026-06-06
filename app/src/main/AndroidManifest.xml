@@ -12,7 +12,43 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MADFYA">
         <activity
-            android:name=".MainActivity"
+            android:name=".History"
+            android:exported="false" />
+        <activity
+            android:name=".Safety"
+            android:exported="false" />
+        <activity
+            android:name=".AdminMain"
+            android:exported="false" />
+        <activity
+            android:name=".Alerts"
+            android:exported="false" />
+        <activity
+            android:name=".UserProfile"
+            android:exported="false" />
+        <activity
+            android:name=".CreateReport"
+            android:exported="false" />
+        <activity
+            android:name=".ViewReport"
+            android:exported="false" />
+        <activity
+            android:name=".Status"
+            android:exported="false" />
+        <activity
+            android:name=".Community"
+            android:exported="false"
+            android:theme="@style/Theme.MADFYA" />
+        <activity
+            android:name=".Dashboard"
+            android:exported="false"
+            android:theme="@style/Theme.MADFYA" />
+        <activity
+            android:name=".ui.login.LoginActivity"
+            android:exported="false"
+            android:label="@string/title_activity_login" />
+        <activity
+            android:name=".Login"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
