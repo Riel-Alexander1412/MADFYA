@@ -2,4 +2,53 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Brand -->
+    <color name="brand_blue">#1565C0</color>
+    <color name="brand_blue_dark">#0D47A1</color>
+    <color name="brand_blue_light">#E3F2FD</color>
+    <color name="brand_teal">#00897B</color>
+
+    <!-- Surfaces -->
+    <color name="app_background">#F4F6F8</color>
+    <color name="card_background">#FFFFFFFF</color>
+    <color name="divider">#E5E8EC</color>
+    <color name="chip_unselected_bg">#FFFFFFFF</color>
+    <color name="chip_unselected_stroke">#D5DAE1</color>
+
+    <!-- Text -->
+    <color name="text_primary">#1A2233</color>
+    <color name="text_secondary">#6B7280</color>
+    <color name="text_on_brand">#FFFFFFFF</color>
+
+    <!-- Status -->
+    <color name="status_active">#2E9E5B</color>
+    <color name="status_inactive">#9CA3AF</color>
+
+    <!-- Alert accents -->
+    <color name="alert_critical">#D32F2F</color>
+    <color name="alert_report">#1565C0</color>
+    <color name="alert_maintenance">#2E7D32</color>
+    <color name="alert_flow">#00897B</color>
+    <color name="alert_announce">#1565C0</color>
+    <color name="alert_personal">#6A1B9A</color>
+
+    <!-- Pinned / urgent notice -->
+    <color name="pinned_bg">#FDECEA</color>
+    <color name="pinned_text">#C62828</color>
+
+    <!-- Tag chip -->
+    <color name="tag_bg">#E3F2FD</color>
+    <color name="tag_text">#1565C0</color>
+
+    <!-- Avatar palette -->
+    <color name="avatar_blue">#1976D2</color>
+    <color name="avatar_teal">#00897B</color>
+    <color name="avatar_gray">#B8C0CC</color>
+    <color name="avatar_purple">#6A1B9A</color>
+    <color name="avatar_orange">#EF6C00</color>
+
+    <!-- Bottom navigation -->
+    <color name="nav_selected">#1E88E5</color>
+    <color name="nav_unselected">#7A8699</color>
 </resources>

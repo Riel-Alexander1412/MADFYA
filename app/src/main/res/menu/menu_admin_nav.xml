@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_admin_stations"
+        android:icon="@drawable/ic_water_drop"
+        android:title="@string/nav_stations" />
+    <item
+        android:id="@+id/menu_admin_reports"
+        android:icon="@drawable/ic_bar_chart"
+        android:title="@string/nav_reports" />
+    <item
+        android:id="@+id/menu_admin_admin"
+        android:icon="@drawable/ic_person"
+        android:title="@string/nav_admin" />
+    <item
+        android:id="@+id/menu_admin_settings"
+        android:icon="@drawable/ic_settings"
+        android:title="@string/nav_settings" />
+</menu>
