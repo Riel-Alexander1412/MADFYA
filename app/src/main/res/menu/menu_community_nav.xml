@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_community_community"
+        android:icon="@drawable/ic_groups"
+        android:title="@string/nav_community" />
+    <item
+        android:id="@+id/menu_community_dashboard"
+        android:icon="@drawable/ic_dashboard"
+        android:title="@string/nav_dashboard" />
+    <item
+        android:id="@+id/menu_community_status"
+        android:icon="@drawable/ic_bar_chart"
+        android:title="@string/nav_status" />
+</menu>
