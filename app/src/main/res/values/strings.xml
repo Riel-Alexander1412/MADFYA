@@ -88,6 +88,7 @@
     <string name="nav_profile">Profile</string>
     <string name="nav_community">Community</string>
     <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_user_view">User View</string>
 
     <string name="action_add">Add</string>
     <string name="action_edit">Edit</string>

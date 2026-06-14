@@ -111,11 +111,13 @@ public class AdminMain extends AppCompatActivity implements UserAdapter.Listener
         View form = LayoutInflater.from(this).inflate(R.layout.dialog_user_form, null, false);
         final TextInputLayout tilName = form.findViewById(R.id.til_name);
         final TextInputEditText etName = form.findViewById(R.id.et_name);
+        final TextInputEditText etPassword = form.findViewById(R.id.et_password);
         final RadioGroup rgRole = form.findViewById(R.id.rg_role);
         final MaterialSwitch swActive = form.findViewById(R.id.sw_active);
 
         if (existing != null) {
             etName.setText(existing.name);
+            etPassword.setText(existing.password);
             swActive.setChecked(existing.active);
             switch (existing.role) {
                 case "Admin":
@@ -149,12 +151,17 @@ public class AdminMain extends AppCompatActivity implements UserAdapter.Listener
                 }
                 String role = roleFor(rgRole.getCheckedRadioButtonId());
                 boolean active = swActive.isChecked();
+                String password = etPassword.getText() == null ? "" : etPassword.getText().toString().trim();
                 if (existing == null) {
-                    repo.addUser(new User(name, role, active, System.currentTimeMillis()));
+                    repo.addUser(new User(name, role, active, System.currentTimeMillis(),
+                            password.isEmpty() ? "123456" : password));
                 } else {
                     existing.name = name;
                     existing.role = role;
                     existing.active = active;
+                    if (!password.isEmpty()) {
+                        existing.password = password;
+                    }
                     repo.updateUser(existing);
                 }
                 dialog.dismiss();
@@ -198,7 +205,7 @@ public class AdminMain extends AppCompatActivity implements UserAdapter.Listener
             if (id == R.id.menu_admin_admin) {
                 return true;
             }
-            if (id == R.id.menu_admin_stations) {
+            if (id == R.id.menu_admin_userview) {
                 startActivity(new Intent(this, Dashboard.class));
                 return true;
             }
