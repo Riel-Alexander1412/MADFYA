@@ -51,4 +51,8 @@
     <!-- Bottom navigation -->
     <color name="nav_selected">#1E88E5</color>
     <color name="nav_unselected">#7A8699</color>
+
+    <color name="badge_normal_text">#2E7D32</color>
+    <color name="badge_warning_text">#E65100</color>
+    <color name="badge_disabled_text">#757575</color>
 </resources>

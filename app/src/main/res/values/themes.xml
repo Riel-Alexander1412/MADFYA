@@ -17,7 +17,7 @@
         <item name="android:navigationBarColor">@color/card_background</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
     </style>
-
+    <style name="Theme.YourApp" parent="Theme.MaterialComponents.Light.NoActionBar"/>
     <style name="Theme.MADFYA" parent="Base.Theme.MADFYA" />
 
     <!-- Filter chip used on Alerts and Community pages. -->

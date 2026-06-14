@@ -18,10 +18,11 @@ final class Seed {
 
         // ----- Users (Admin page) -----
         UserDao users = db.userDao();
-        users.insert(new User("Jane Smith", "Admin", true, now));
+        users.insert(new User("Jane_Smith", "Admin", true, now));
         users.insert(new User("Mike Ross", "Maintenance", true, now));
-        users.insert(new User("David Lee", "Resident", false, now));
+        users.insert(new User("David_Lee", "Resident", false, now));
         users.insert(new User("Sarah Jenkins", "Maintenance", true, now));
+        users.insert(new User("Something", "Resident", true, now));
 
         // ----- Alerts / activity feed (Alerts page) -----
         AlertDao alerts = db.alertDao();

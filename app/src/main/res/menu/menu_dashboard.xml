@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- res/menu/menu_dashboard.xml -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/menu_community"
+        android:icon="@drawable/ic_groups"
+        android:title="Community" />
+
+    <item
+        android:id="@+id/menu_dashboard"
+        android:icon="@drawable/ic_dashboard"
+        android:title="Dashboard" />
+
+    <item
+        android:id="@+id/menu_status"
+        android:icon="@drawable/ic_bar_chart"
+        android:title="Status" />
+
+</menu>

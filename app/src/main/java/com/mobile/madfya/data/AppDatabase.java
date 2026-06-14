@@ -17,8 +17,8 @@ import java.util.concurrent.Executors;
  * operations so the UI thread is never blocked.
  */
 @Database(
-        entities = {User.class, Alert.class, CommunityNotice.class, Comment.class},
-        version = 1,
+        entities = {User.class, Alert.class, CommunityNotice.class, Comment.class, Reports.class, Sensors.class},
+        version = 2,
         exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
@@ -29,11 +29,13 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract CommunityNoticeDao noticeDao();
 
     public abstract CommentDao commentDao();
+    public abstract SensorsDao sensorsDao();
+    public abstract ReportDao reportDao();
 
     private static volatile AppDatabase instance;
 
     /** Shared pool for all database writes. */
-    public static final ExecutorService dbExecutor = Executors.newFixedThreadPool(4);
+    public static final ExecutorService dbExecutor = Executors.newFixedThreadPool(6);
 
     public static AppDatabase get(Context context) {
         if (instance == null) {
@@ -51,7 +53,6 @@ public abstract class AppDatabase extends RoomDatabase {
         return instance;
     }
 
-    /** Populates the demo data the first time the database is created. */
     private static final Callback SEED_CALLBACK = new Callback() {
         @Override
         public void onCreate(@NonNull SupportSQLiteDatabase db) {

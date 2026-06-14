@@ -1,28 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/FirstFragment">
+    app:startDestination="@id/loginActivity">
 
-    <fragment
-        android:id="@+id/FirstFragment"
-        android:name="com.mobile.madfya.CommunityFragment"
-        android:label="@string/first_fragment_label"
-        tools:layout="@layout/fragment_first">
+    <!-- ── Auth ── -->
+    <activity
+        android:id="@+id/loginActivity"
+        android:name="com.mobile.madfya.Login"
+        android:label="Login" />
 
-        <action
-            android:id="@+id/action_FirstFragment_to_SecondFragment"
-            app:destination="@id/SecondFragment" />
-    </fragment>
-    <fragment
-        android:id="@+id/SecondFragment"
-        android:name="com.mobile.madfya.GeneralFragment"
-        android:label="@string/second_fragment_label"
-        tools:layout="@layout/fragment_second">
+    <!-- ── Resident ── -->
+    <activity
+        android:id="@+id/dashboardActivity"
+        android:name="com.mobile.madfya.Dashboard"
+        android:label="Dashboard" />
 
-        <action
-            android:id="@+id/action_SecondFragment_to_FirstFragment"
-            app:destination="@id/FirstFragment" />
-    </fragment>
+    <activity
+        android:id="@+id/communityActivity"
+        android:name="com.mobile.madfya.Community"
+        android:label="Community" />
+
+    <activity
+        android:id="@+id/statusActivity"
+        android:name="com.mobile.madfya.Status"
+        android:label="Status" />
+
+    <activity
+        android:id="@+id/alertsActivity"
+        android:name="com.mobile.madfya.Alerts"
+        android:label="Alerts" />
+
+    <activity
+        android:id="@+id/userProfileActivity"
+        android:name="com.mobile.madfya.UserProfile"
+        android:label="Profile" />
+
+    <!-- ── Admin / Maintenance ── -->
+    <activity
+        android:id="@+id/adminDashboardActivity"
+        android:name="com.mobile.madfya.AdminMain"
+        android:label="Admin Dashboard" />
+
 </navigation>

@@ -26,4 +26,10 @@ public interface UserDao {
 
     @Query("SELECT COUNT(*) FROM users")
     int count();
+
+    @Query("SELECT * FROM users WHERE name = :username AND password = :password AND active = 1 LIMIT 1")
+    User login(String username, String password);
+
+    @Query("SELECT * FROM users ORDER BY name COLLATE NOCASE ASC")
+    List<User> getAllSync();
 }

@@ -1,6 +1,7 @@
 package com.mobile.madfya.data;
 
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 /**
@@ -17,11 +18,22 @@ public class User {
     public String role;
     public boolean active;
     public long createdAt;
+    public String password;
 
     public User(String name, String role, boolean active, long createdAt) {
         this.name = name;
         this.role = role;
         this.active = active;
         this.createdAt = createdAt;
+        this.password = "123456";
+    }
+
+    @Ignore
+    public User(String name, String role, boolean active, long createdAt, String password) {
+        this.name = name;
+        this.role = role;
+        this.active = active;
+        this.createdAt = createdAt;
+        this.password = password;
     }
 }
