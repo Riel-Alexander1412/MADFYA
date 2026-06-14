@@ -1,15 +1,8 @@
 package com.mobile.madfya.data;
 
-import androidx.room.Entity;
-import androidx.room.PrimaryKey;
-
-
-@Entity(tableName = "sensors")
 public  class Sensors {
 
-    @PrimaryKey(autoGenerate = true)
-    public int id; // auto log ID
-
+    public String firebaseKey;
     public int filterId;
 
     //Sensor data add more if you need it dani
@@ -25,17 +18,18 @@ public  class Sensors {
     public long LastMaintenance;
 
     //Maintenance Stuff
-    public int InstalledBy;
+    public String InstalledBy;
 
     //Location
     public double latitude;
     public double longitude;
     public Sensors() {}
-    public Sensors(long currentTimeStamp, long lastMaintenance, int installedBy, double latitude, double longitude) {
+    public Sensors(long currentTimeStamp, long lastMaintenance, String installedBy, double latitude, double longitude) {
         this.CurrentTimeStamp = currentTimeStamp;
         this.LastMaintenance = lastMaintenance;
         this.InstalledBy = installedBy;
         this.latitude = latitude;
         this.longitude = longitude;
     }
+
 }

@@ -42,7 +42,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.mobile.madfya.data.Comment;
 import com.mobile.madfya.data.CommunityNotice;
-import com.mobile.madfya.data.MadfyaRepository;
+import com.mobile.madfya.data.FirebaseRepository;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -50,20 +50,20 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-/** Community page where users and admins share notices, like and comment. */
+/** Community page — powered by Firebase Realtime Database. */
 public class Community extends AppCompatActivity implements NoticeAdapter.Listener {
 
-    private MadfyaRepository repo;
+    private FirebaseRepository repo;
     private NoticeAdapter adapter;
     private final List<CommunityNotice> all = new ArrayList<>();
-    private String query = "";
+    private String query  = "";
     private String filter = "All";
 
     private FusedLocationProviderClient fusedLocationClient;
     private ActivityResultLauncher<String> locationPermissionLauncher;
     private TextView tvLocation;
-    private String currentLocationName = null;
-    private boolean hasLocation = false;
+    private String  currentLocationName = null;
+    private boolean hasLocation         = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,19 +76,22 @@ public class Community extends AppCompatActivity implements NoticeAdapter.Listen
             return insets;
         });
 
-        repo = new MadfyaRepository(this);
+        // ── Firebase replaces MadfyaRepository ───────────────────────────────
+        repo = FirebaseRepository.get();
 
         RecyclerView recycler = findViewById(R.id.recycler);
         recycler.setLayoutManager(new LinearLayoutManager(this));
         adapter = new NoticeAdapter(this);
         recycler.setAdapter(adapter);
 
-        repo.notices().observe(this, notices -> {
+        // ── Observe notices from Firebase in real-time ────────────────────────
+        repo.getAllNotices().observe(this, notices -> {
             all.clear();
             all.addAll(notices);
             render();
         });
 
+        // ── Search ────────────────────────────────────────────────────────────
         EditText search = findViewById(R.id.et_search);
         search.addTextChangedListener(new AdminMain.SimpleWatcher() {
             @Override
@@ -98,6 +101,7 @@ public class Community extends AppCompatActivity implements NoticeAdapter.Listen
             }
         });
 
+        // ── Filter chips ──────────────────────────────────────────────────────
         ChipGroup chipGroup = findViewById(R.id.chip_group);
         chipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
             filter = filterFor(checkedIds.isEmpty() ? R.id.chip_all : checkedIds.get(0));
@@ -110,27 +114,27 @@ public class Community extends AppCompatActivity implements NoticeAdapter.Listen
 
         setupBottomNav();
 
+        // ── Location ──────────────────────────────────────────────────────────
         tvLocation = findViewById(R.id.tv_location);
         tvLocation.setOnClickListener(v -> requestLocation());
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         locationPermissionLauncher = registerForActivityResult(
                 new ActivityResultContracts.RequestPermission(),
                 granted -> {
-                    if (granted) {
-                        fetchLocation();
-                    } else {
-                        tvLocation.setText("Location off · tap to enable");
-                    }
+                    if (granted) fetchLocation();
+                    else tvLocation.setText("Location off · tap to enable");
                 });
         requestLocation();
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Filter + render
+    // ─────────────────────────────────────────────────────────────────────────
+
     private void render() {
         List<CommunityNotice> result = new ArrayList<>();
         for (CommunityNotice n : all) {
-            if (matchesFilter(n) && matchesQuery(n)) {
-                result.add(n);
-            }
+            if (matchesFilter(n) && matchesQuery(n)) result.add(n);
         }
         if ("Nearby".equals(filter)) {
             Collections.sort(result, (a, b) -> Double.compare(a.distanceKm, b.distanceKm));
@@ -140,24 +144,18 @@ public class Community extends AppCompatActivity implements NoticeAdapter.Listen
 
     private boolean matchesFilter(CommunityNotice n) {
         switch (filter) {
-            case "Nearby":
-                return n.locationName != null && !n.locationName.trim().isEmpty();
-            case "Alerts":
-                return n.pinned || "Alert".equals(n.tag);
-            case "Maintenance":
-                return "Maintenance".equals(n.tag);
-            case "General":
-                return "General".equals(n.tag);
-            default:
-                return true;
+            case "Nearby":      return n.locationName != null && !n.locationName.trim().isEmpty();
+            case "Alerts":      return n.pinned || "Alert".equals(n.tag);
+            case "Maintenance": return "Maintenance".equals(n.tag);
+            case "General":     return "General".equals(n.tag);
+            default:            return true;
         }
     }
 
     private boolean matchesQuery(CommunityNotice n) {
-        if (query.isEmpty()) {
-            return true;
-        }
-        return contains(n.title) || contains(n.body) || contains(n.authorName) || contains(n.tag);
+        if (query.isEmpty()) return true;
+        return contains(n.title) || contains(n.body)
+                || contains(n.authorName) || contains(n.tag);
     }
 
     private boolean contains(String value) {
@@ -165,22 +163,16 @@ public class Community extends AppCompatActivity implements NoticeAdapter.Listen
     }
 
     private String filterFor(int chipId) {
-        if (chipId == R.id.chip_nearby) {
-            return "Nearby";
-        }
-        if (chipId == R.id.chip_alerts) {
-            return "Alerts";
-        }
-        if (chipId == R.id.chip_maintenance) {
-            return "Maintenance";
-        }
-        if (chipId == R.id.chip_general) {
-            return "General";
-        }
+        if (chipId == R.id.chip_nearby)      return "Nearby";
+        if (chipId == R.id.chip_alerts)      return "Alerts";
+        if (chipId == R.id.chip_maintenance) return "Maintenance";
+        if (chipId == R.id.chip_general)     return "General";
         return "All";
     }
 
-    // ---------------- Location (GPS) ----------------
+    // ─────────────────────────────────────────────────────────────────────────
+    // Location (GPS)
+    // ─────────────────────────────────────────────────────────────────────────
 
     private void requestLocation() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -197,10 +189,7 @@ public class Community extends AppCompatActivity implements NoticeAdapter.Listen
         try {
             fusedLocationClient.getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, null)
                     .addOnSuccessListener(this, location -> {
-                        if (location == null) {
-                            tvLocation.setText("Location unavailable");
-                            return;
-                        }
+                        if (location == null) { tvLocation.setText("Location unavailable"); return; }
                         resolveAreaName(location.getLatitude(), location.getLongitude());
                     })
                     .addOnFailureListener(this, e -> tvLocation.setText("Location unavailable"));
@@ -209,10 +198,9 @@ public class Community extends AppCompatActivity implements NoticeAdapter.Listen
         }
     }
 
-    // Show the coordinates immediately, then try to turn them into an area name.
     private void resolveAreaName(double lat, double lng) {
         final String coords = String.format(Locale.getDefault(), "%.4f, %.4f", lat, lng);
-        hasLocation = true;
+        hasLocation         = true;
         currentLocationName = coords;
         tvLocation.setText(coords);
 
@@ -223,34 +211,27 @@ public class Community extends AppCompatActivity implements NoticeAdapter.Listen
                 List<Address> result = geocoder.getFromLocation(lat, lng, 1);
                 if (result != null && !result.isEmpty()) {
                     Address a = result.get(0);
-                    if (a.getSubLocality() != null) {
-                        area = a.getSubLocality();
-                    } else if (a.getLocality() != null) {
-                        area = a.getLocality();
-                    } else if (a.getAdminArea() != null) {
-                        area = a.getAdminArea();
-                    }
+                    if      (a.getSubLocality() != null) area = a.getSubLocality();
+                    else if (a.getLocality()    != null) area = a.getLocality();
+                    else if (a.getAdminArea()   != null) area = a.getAdminArea();
                 }
-            } catch (IOException | IllegalArgumentException ignored) {
-                // No geocoder result; keep the coordinates.
-            }
+            } catch (IOException | IllegalArgumentException ignored) {}
             final String shown = area;
-            runOnUiThread(() -> {
-                currentLocationName = shown;
-                tvLocation.setText(shown);
-            });
+            runOnUiThread(() -> { currentLocationName = shown; tvLocation.setText(shown); });
         }).start();
     }
 
-    // ---------------- Posting ----------------
+    // ─────────────────────────────────────────────────────────────────────────
+    // Post notice dialog
+    // ─────────────────────────────────────────────────────────────────────────
 
     private void showPostDialog() {
         View form = LayoutInflater.from(this).inflate(R.layout.dialog_post_form, null, false);
-        final TextInputLayout tilTitle = form.findViewById(R.id.til_title);
-        final TextInputEditText etTitle = form.findViewById(R.id.et_title);
-        final TextInputEditText etBody = form.findViewById(R.id.et_body);
-        final RadioGroup rgTag = form.findViewById(R.id.rg_tag);
-        final MaterialSwitch swImportant = form.findViewById(R.id.sw_important);
+        final TextInputLayout   tilTitle    = form.findViewById(R.id.til_title);
+        final TextInputEditText etTitle     = form.findViewById(R.id.et_title);
+        final TextInputEditText etBody      = form.findViewById(R.id.et_body);
+        final RadioGroup        rgTag       = form.findViewById(R.id.rg_tag);
+        final MaterialSwitch    swImportant = form.findViewById(R.id.sw_important);
 
         final AlertDialog dialog = new MaterialAlertDialogBuilder(this)
                 .setTitle("Share a notice")
@@ -262,21 +243,26 @@ public class Community extends AppCompatActivity implements NoticeAdapter.Listen
         dialog.setOnShowListener(d -> {
             Button post = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             post.setOnClickListener(v -> {
-                String title = etTitle.getText() == null ? "" : etTitle.getText().toString().trim();
-                if (title.isEmpty()) {
-                    tilTitle.setError("Title is required");
-                    return;
-                }
-                String body = etBody.getText() == null ? "" : etBody.getText().toString().trim();
-                boolean important = swImportant.isChecked();
-                String tag = important ? "Alert" : tagFor(rgTag.getCheckedRadioButtonId());
+                String title = etTitle.getText() == null
+                        ? "" : etTitle.getText().toString().trim();
+                if (title.isEmpty()) { tilTitle.setError("Title is required"); return; }
 
-                String location = hasLocation ? currentLocationName : null;
+                String  body      = etBody.getText() == null ? "" : etBody.getText().toString().trim();
+                boolean important = swImportant.isChecked();
+                String  tag       = important ? "Alert" : tagFor(rgTag.getCheckedRadioButtonId());
+                String  location  = hasLocation ? currentLocationName : null;
+
+                // Get logged-in user name from session
+                String authorName = getSharedPreferences(Login.PREFS_NAME, MODE_PRIVATE)
+                        .getString(Login.KEY_NAME, "User");
+
                 CommunityNotice notice = new CommunityNotice(
-                        title, body, tag, "You", false,
+                        title, body, tag, authorName, false,
                         System.currentTimeMillis(), location, 0, 0, 0,
                         important, important);
-                repo.postNotice(notice);
+
+                // ── INSERT notice into Firebase ───────────────────────────────
+                repo.insertNotice(notice);
                 dialog.dismiss();
             });
         });
@@ -284,35 +270,36 @@ public class Community extends AppCompatActivity implements NoticeAdapter.Listen
     }
 
     private String tagFor(int checkedId) {
-        if (checkedId == R.id.rb_event) {
-            return "Event";
-        }
-        if (checkedId == R.id.rb_maintenance) {
-            return "Maintenance";
-        }
+        if (checkedId == R.id.rb_event)       return "Event";
+        if (checkedId == R.id.rb_maintenance) return "Maintenance";
         return "General";
     }
 
-    // ---------------- Like / comment ----------------
+    // ─────────────────────────────────────────────────────────────────────────
+    // Like / comment (NoticeAdapter.Listener)
+    // ─────────────────────────────────────────────────────────────────────────
 
     @Override
     public void onLike(CommunityNotice notice) {
-        repo.likeNotice(notice.id);
+        if (notice.firebaseKey == null) return;
+        notice.likes = (notice.likes == 0 ? 0 : notice.likes) + 1;
+        FirebaseRepository.get().updateNotice(notice.firebaseKey, notice);
     }
 
     @Override
     public void onComment(final CommunityNotice notice) {
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_comments, null, false);
-        RecyclerView rv = view.findViewById(R.id.rv_comments);
-        final View empty = view.findViewById(R.id.empty);
-        EditText etComment = view.findViewById(R.id.et_comment);
+        RecyclerView rv       = view.findViewById(R.id.rv_comments);
+        final View   empty    = view.findViewById(R.id.empty);
+        EditText     etComment= view.findViewById(R.id.et_comment);
         MaterialButton btnSend = view.findViewById(R.id.btn_send);
 
         rv.setLayoutManager(new LinearLayoutManager(this));
         final CommentAdapter commentAdapter = new CommentAdapter();
         rv.setAdapter(commentAdapter);
 
-        final LiveData<List<Comment>> live = repo.commentsFor(notice.id);
+        // ── Observe comments for this notice from Firebase ────────────────────
+        final LiveData<List<Comment>> live = repo.getCommentsByNotice(notice.firebaseKey);
         final Observer<List<Comment>> observer = comments -> {
             commentAdapter.submit(comments);
             boolean isEmpty = comments == null || comments.isEmpty();
@@ -321,12 +308,15 @@ public class Community extends AppCompatActivity implements NoticeAdapter.Listen
         };
         live.observe(this, observer);
 
+        String authorName = getSharedPreferences(Login.PREFS_NAME, MODE_PRIVATE)
+                .getString(Login.KEY_NAME, "User");
+
         btnSend.setOnClickListener(v -> {
             String text = etComment.getText().toString().trim();
-            if (text.isEmpty()) {
-                return;
-            }
-            repo.addComment(new Comment(notice.id, "You", text, System.currentTimeMillis()));
+            if (text.isEmpty()) return;
+            // ── INSERT comment into Firebase ──────────────────────────────────
+            repo.insertComment(new Comment(notice.firebaseKey, authorName, text,
+                    System.currentTimeMillis()));
             etComment.setText("");
         });
 
@@ -338,24 +328,18 @@ public class Community extends AppCompatActivity implements NoticeAdapter.Listen
         dialog.show();
     }
 
-    // ---------------- Bottom navigation ----------------
+    // ─────────────────────────────────────────────────────────────────────────
+    // Bottom navigation
+    // ─────────────────────────────────────────────────────────────────────────
 
     private void setupBottomNav() {
         BottomNavigationView nav = findViewById(R.id.bottom_nav);
         nav.setSelectedItemId(R.id.menu_community_community);
         nav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.menu_community_community) {
-                return true;
-            }
-            if (id == R.id.menu_community_dashboard) {
-                startActivity(new Intent(this, Dashboard.class));
-                return true;
-            }
-            if (id == R.id.menu_community_status) {
-                startActivity(new Intent(this, Status.class));
-                return true;
-            }
+            if (id == R.id.menu_community_community) return true;
+            if (id == R.id.menu_community_dashboard) { startActivity(new Intent(this, Dashboard.class)); return true; }
+            if (id == R.id.menu_community_status)    { startActivity(new Intent(this, Status.class));    return true; }
             return false;
         });
     }
@@ -364,8 +348,6 @@ public class Community extends AppCompatActivity implements NoticeAdapter.Listen
     protected void onResume() {
         super.onResume();
         BottomNavigationView nav = findViewById(R.id.bottom_nav);
-        if (nav != null) {
-            nav.setSelectedItemId(R.id.menu_community_community);
-        }
+        if (nav != null) nav.setSelectedItemId(R.id.menu_community_community);
     }
 }

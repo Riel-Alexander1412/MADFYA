@@ -42,7 +42,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import com.mobile.madfya.data.AppDatabase;
+import com.mobile.madfya.data.FirebaseRepository;
 import com.mobile.madfya.data.Reports;
 
 import java.io.IOException;
@@ -52,23 +52,25 @@ import java.util.List;
 import java.util.Locale;
 
 public class CreateReport extends AppCompatActivity implements OnMapReadyCallback {
+
     private static final int REQUEST_LOCATION_PERMISSION = 101;
     private static final int REQUEST_CAMERA_PERMISSION   = 102;
+
     private AutoCompleteTextView  spinnerCategory;
     private TextInputEditText     etName, etLocation, etDate, etTime, etDetails;
     private TextInputLayout       tilLocation;
     private CardView              cardImagePreview;
     private ImageView             ivPreview;
     private MaterialButton        btnUploadImage, btnSubmit;
-    private double   pickedLat    = 0.0;
-    private double   pickedLng    = 0.0;
-    private String   savedImagePath = null;
-    private Uri      cameraImageUri = null;
+
+    private double    pickedLat     = 0.0;
+    private double    pickedLng     = 0.0;
+    private String    savedImagePath = null;
+    private Uri       cameraImageUri = null;
     private GoogleMap googleMap;
     private final Calendar calendar = Calendar.getInstance();
 
     private FusedLocationProviderClient fusedLocation;
-
 
     /** Pick image from gallery */
     private final ActivityResultLauncher<String> galleryLauncher =
@@ -79,9 +81,8 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
     /** Capture photo with camera */
     private final ActivityResultLauncher<Uri> cameraLauncher =
             registerForActivityResult(new ActivityResultContracts.TakePicture(), success -> {
-                if (Boolean.TRUE.equals(success) && cameraImageUri != null) {
+                if (Boolean.TRUE.equals(success) && cameraImageUri != null)
                     handleImageUri(cameraImageUri);
-                }
             });
 
     @Override
@@ -113,9 +114,13 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
         tilLocation.setEndIconOnClickListener(v -> fetchGpsLocation());
         btnUploadImage.setOnClickListener(v -> showImageSourceDialog());
         btnSubmit.setOnClickListener(v -> submitReport());
-
         findViewById(R.id.btn_remove_image).setOnClickListener(v -> clearImage());
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // View binding
+    // ─────────────────────────────────────────────────────────────────────────
+
     private void bindViews() {
         spinnerCategory  = findViewById(R.id.spinner_category);
         etName           = findViewById(R.id.et_name);
@@ -130,6 +135,9 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
         btnSubmit        = findViewById(R.id.btn_submit);
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Category dropdown
+    // ─────────────────────────────────────────────────────────────────────────
 
     private void setupCategoryDropdown() {
         String[] categories = {"Damaged Pipes", "Unusual Behavior", "Miscellaneous"};
@@ -138,6 +146,9 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
         spinnerCategory.setAdapter(adapter);
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Pre-fill
+    // ─────────────────────────────────────────────────────────────────────────
 
     private void prefillUserName() {
         String name = getSharedPreferences(Login.PREFS_NAME, MODE_PRIVATE)
@@ -150,10 +161,13 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
         updateTimeField();
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Date / time pickers
+    // ─────────────────────────────────────────────────────────────────────────
+
     private void setupDateTimePickers() {
         etDate.setOnClickListener(v -> showDatePicker());
         findViewById(R.id.til_date).setOnClickListener(v -> showDatePicker());
-
         etTime.setOnClickListener(v -> showTimePicker());
         findViewById(R.id.til_time).setOnClickListener(v -> showTimePicker());
     }
@@ -161,15 +175,14 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
     private void showDatePicker() {
         new DatePickerDialog(this,
                 (view, year, month, day) -> {
-                    calendar.set(Calendar.YEAR,  year);
+                    calendar.set(Calendar.YEAR, year);
                     calendar.set(Calendar.MONTH, month);
                     calendar.set(Calendar.DAY_OF_MONTH, day);
                     updateDateField();
                 },
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH))
-                .show();
+                calendar.get(Calendar.DAY_OF_MONTH)).show();
     }
 
     private void showTimePicker() {
@@ -181,8 +194,7 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
                 },
                 calendar.get(Calendar.HOUR_OF_DAY),
                 calendar.get(Calendar.MINUTE),
-                false)
-                .show();
+                false).show();
     }
 
     private void updateDateField() {
@@ -195,6 +207,10 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
                 .format(calendar.getTime()));
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Google Maps mini-preview
+    // ─────────────────────────────────────────────────────────────────────────
+
     private void setupMapFragment() {
         SupportMapFragment mapFragment = (SupportMapFragment)
                 getSupportFragmentManager().findFragmentById(R.id.map_fragment);
@@ -204,7 +220,7 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(@NonNull GoogleMap map) {
         googleMap = map;
-        googleMap.getUiSettings().setAllGesturesEnabled(false); // preview only
+        googleMap.getUiSettings().setAllGesturesEnabled(false);
         googleMap.getUiSettings().setZoomControlsEnabled(false);
     }
 
@@ -216,6 +232,10 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, 16f));
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // GPS location
+    // ─────────────────────────────────────────────────────────────────────────
+
     private void fetchGpsLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -224,9 +244,7 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
                     REQUEST_LOCATION_PERMISSION);
             return;
         }
-
         etLocation.setHint("Fetching location…");
-
         fusedLocation.getLastLocation().addOnSuccessListener(location -> {
             if (location != null) {
                 pickedLat = location.getLatitude();
@@ -266,32 +284,30 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_LOCATION_PERMISSION
                 && grantResults.length > 0
-                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            fetchGpsLocation();
-        }
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED) fetchGpsLocation();
         if (requestCode == REQUEST_CAMERA_PERMISSION
                 && grantResults.length > 0
-                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            launchCamera();
-        }
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED) launchCamera();
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Image — camera or gallery
+    // ─────────────────────────────────────────────────────────────────────────
 
     private void showImageSourceDialog() {
         new MaterialAlertDialogBuilder(this)
                 .setTitle("Add photo")
                 .setItems(new String[]{"Take a photo", "Choose from gallery"}, (dialog, which) -> {
                     if (which == 0) checkCameraAndLaunch();
-                    else            galleryLauncher.launch("image/*");
-                })
-                .show();
+                    else galleryLauncher.launch("image/*");
+                }).show();
     }
 
     private void checkCameraAndLaunch() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.CAMERA},
-                    REQUEST_CAMERA_PERMISSION);
+                    new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
         } else {
             launchCamera();
         }
@@ -304,14 +320,13 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
         values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
         values.put(MediaStore.Images.Media.RELATIVE_PATH,
                 Environment.DIRECTORY_PICTURES + "/MADFYA");
-
         cameraImageUri = getContentResolver().insert(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
         if (cameraImageUri != null) cameraLauncher.launch(cameraImageUri);
     }
 
     private void handleImageUri(Uri uri) {
-        savedImagePath = uri.toString(); // store URI string as path in DB
+        savedImagePath = uri.toString();
         Glide.with(this).load(uri).centerCrop().into(ivPreview);
         cardImagePreview.setVisibility(View.VISIBLE);
         btnUploadImage.setText("Change image");
@@ -325,9 +340,11 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
         btnUploadImage.setText("Upload image");
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Submit — Firebase replaces AppDatabase + dbExecutor
+    // ─────────────────────────────────────────────────────────────────────────
 
     private void submitReport() {
-        // Validate
         String category = spinnerCategory.getText().toString().trim();
         String details  = etDetails.getText() != null
                 ? etDetails.getText().toString().trim() : "";
@@ -342,31 +359,31 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
 
-        int userId = getSharedPreferences(Login.PREFS_NAME, MODE_PRIVATE)
-                .getInt(Login.KEY_USER_ID, -1);
+        // Get logged-in user's Firebase key from SharedPreferences
+        String userId = getSharedPreferences(Login.PREFS_NAME, MODE_PRIVATE)
+                .getString(Login.KEY_USER_ID, "");
 
         Reports report = new Reports(
                 category,
                 details,
                 category,
-                userId,
+                userId,       // now a String (Firebase key) instead of int
                 pickedLat,
                 pickedLng,
                 savedImagePath
         );
 
+        // Override auto-timestamp with user-selected calendar time
         report.ReportedTimeStamps = calendar.getTimeInMillis();
 
         btnSubmit.setEnabled(false);
         btnSubmit.setText("Submitting…");
 
-        AppDatabase.dbExecutor.execute(() -> {
-            AppDatabase.get(this).reportDao().insert(report);
-            runOnUiThread(() -> {
-                Toast.makeText(this, "Report submitted", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(this, ViewReport.class));
-                finish();
-            });
-        });
+        // ── INSERT into Firebase — no background thread needed ────────────────
+        FirebaseRepository.get().insertReport(report);
+
+        Toast.makeText(this, "Report submitted", Toast.LENGTH_SHORT).show();
+        startActivity(new Intent(this, ViewReport.class));
+        finish();
     }
 }

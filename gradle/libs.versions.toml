@@ -19,6 +19,8 @@ cardview = "1.0.0"
 recyclerview = "1.4.0"
 playServicesMaps = "20.0.0"
 playServicesLocation = "21.2.0"
+firebaseDatabase = "22.0.1"
+firebaseStorage = "22.0.1"
 
 [libraries]
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
@@ -41,6 +43,8 @@ androidx-cardview = { group = "androidx.cardview", name = "cardview", version.re
 recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
 play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
+firebase-database = { group = "com.google.firebase", name = "firebase-database", version.ref = "firebaseDatabase" }
+firebase-storage = { group = "com.google.firebase", name = "firebase-storage", version.ref = "firebaseStorage" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -1,7 +1,6 @@
 package com.mobile.madfya;
 
 import android.Manifest;
-import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -27,13 +26,13 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.graphics.Insets;
 
-import com.mobile.madfya.data.AppDatabase;
+import com.bumptech.glide.Glide;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.mobile.madfya.data.FirebaseRepository;
 import com.mobile.madfya.data.User;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.List;
+import java.io.ByteArrayOutputStream;
 
 public class UserProfile extends AppCompatActivity {
 
@@ -50,7 +49,8 @@ public class UserProfile extends AppCompatActivity {
     private Bitmap capturedPhotoBitmap;
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 100;
 
-    private AppDatabase db;
+    private FirebaseRepository repo;
+    private StorageReference storageRef;
     private User currentUser;
 
     private final ActivityResultLauncher<Intent> cameraLauncher = registerForActivityResult(
@@ -62,7 +62,7 @@ public class UserProfile extends AppCompatActivity {
 
                     if (currentUser != null && capturedPhotoBitmap != null) {
                         profileImageView.setImageBitmap(capturedPhotoBitmap);
-                        saveProfileImageToDatabase(capturedPhotoBitmap);
+                        uploadProfileImageToFirebase(capturedPhotoBitmap);
                     }
                 } else {
                     Toast.makeText(this, "Camera Cancelled", Toast.LENGTH_SHORT).show();
@@ -81,18 +81,20 @@ public class UserProfile extends AppCompatActivity {
             return insets;
         });
 
-        profileImageView = findViewById(R.id.profileImageView);
-        userNameTextView = findViewById(R.id.userNameTextView);
-        userNameEditText = findViewById(R.id.userNameEditText);
-        editNameIcon = findViewById(R.id.editNameIcon);
-        buttonRow = findViewById(R.id.buttonRow);
-        saveNameButton = findViewById(R.id.saveNameButton);
-        cancelNameButton = findViewById(R.id.cancelNameButton);
-        logoutButton = findViewById(R.id.logoutButton);
+        profileImageView       = findViewById(R.id.profileImageView);
+        userNameTextView       = findViewById(R.id.userNameTextView);
+        userNameEditText       = findViewById(R.id.userNameEditText);
+        editNameIcon           = findViewById(R.id.editNameIcon);
+        buttonRow              = findViewById(R.id.buttonRow);
+        saveNameButton         = findViewById(R.id.saveNameButton);
+        cancelNameButton       = findViewById(R.id.cancelNameButton);
+        logoutButton           = findViewById(R.id.logoutButton);
         editProfilePictureText = findViewById(R.id.editProfilePictureText);
-        ImageView backArrow = findViewById(R.id.backArrowIcon);
+        ImageView backArrow    = findViewById(R.id.backArrowIcon);
 
-        db = AppDatabase.get(this);
+        repo       = FirebaseRepository.get();
+        storageRef = FirebaseStorage.getInstance().getReference("profile_images");
+
         loadUserData();
 
         backArrow.setOnClickListener(v -> finish());
@@ -102,6 +104,112 @@ public class UserProfile extends AppCompatActivity {
         saveNameButton.setOnClickListener(v -> saveName());
         logoutButton.setOnClickListener(v -> logout());
     }
+
+    // ── Load user from Firebase using the saved Firebase key ─────────────────
+
+    private void loadUserData() {
+        SharedPreferences prefs = getSharedPreferences(Login.PREFS_NAME, MODE_PRIVATE);
+        String userId = prefs.getString(Login.KEY_USER_ID, null);
+
+        if (userId == null) {
+            loadDummyData();
+            return;
+        }
+
+        repo.getAllUsers().observe(this, users -> {
+            if (users == null || users.isEmpty()) {
+                loadDummyData();
+                return;
+            }
+
+            currentUser = null;
+            for (User u : users) {
+                if (userId.equals(u.firebaseKey)) {
+                    currentUser = u;
+                    break;
+                }
+            }
+
+            if (currentUser != null) {
+                userNameTextView.setText(currentUser.name);
+
+                // Load profile image from Firebase Storage URL via Glide
+                if (currentUser.profileImagePath != null && !currentUser.profileImagePath.isEmpty()) {
+                    Glide.with(this)
+                            .load(currentUser.profileImagePath)
+                            .placeholder(R.drawable.ic_person)
+                            .circleCrop()
+                            .into(profileImageView);
+                }
+            } else {
+                loadDummyData();
+            }
+        });
+    }
+
+    // ── Upload profile image to Firebase Storage, then save URL to RTDB ──────
+
+    private void uploadProfileImageToFirebase(Bitmap bitmap) {
+        if (currentUser == null) return;
+
+        Toast.makeText(this, "Uploading...", Toast.LENGTH_SHORT).show();
+
+        // Convert bitmap to bytes
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+        byte[] imageData = baos.toByteArray();
+
+        // Store under profile_images/{firebaseKey}.png
+        StorageReference fileRef = storageRef.child(currentUser.firebaseKey + ".png");
+
+        fileRef.putBytes(imageData)
+                .addOnSuccessListener(taskSnapshot ->
+                        // Get the public download URL
+                        fileRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                            String downloadUrl = uri.toString();
+
+                            // Save URL into the user's profileImagePath field in RTDB
+                            currentUser.profileImagePath = downloadUrl;
+                            repo.updateUser(currentUser.firebaseKey, currentUser);
+
+                            Toast.makeText(this, "Profile picture saved!", Toast.LENGTH_SHORT).show();
+                        })
+                )
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                );
+    }
+
+    // ── Save updated name to Firebase + SharedPreferences ────────────────────
+
+    private void saveName() {
+        String newName = userNameEditText.getText().toString().trim();
+
+        if (newName.isEmpty()) {
+            userNameEditText.setError("Name cannot be empty");
+            return;
+        }
+
+        if (currentUser == null) {
+            userNameTextView.setText(newName);
+            exitEditMode();
+            return;
+        }
+
+        currentUser.name = newName;
+        repo.updateUser(currentUser.firebaseKey, currentUser);
+
+        getSharedPreferences(Login.PREFS_NAME, MODE_PRIVATE)
+                .edit()
+                .putString(Login.KEY_NAME, newName)
+                .apply();
+
+        userNameTextView.setText(newName);
+        exitEditMode();
+        Toast.makeText(this, "Name updated successfully!", Toast.LENGTH_SHORT).show();
+    }
+
+    // ── Camera permission ─────────────────────────────────────────────────────
 
     private void checkCameraPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
@@ -119,117 +227,13 @@ public class UserProfile extends AppCompatActivity {
         cameraLauncher.launch(cameraIntent);
     }
 
+    // ── Edit mode helpers ─────────────────────────────────────────────────────
+
     private void enterEditMode() {
-        String currentName = userNameTextView.getText().toString();
-        userNameEditText.setText(currentName);
+        userNameEditText.setText(userNameTextView.getText().toString());
         userNameTextView.setVisibility(View.GONE);
         userNameEditText.setVisibility(View.VISIBLE);
         buttonRow.setVisibility(View.VISIBLE);
-    }
-
-    private void loadUserData() {
-        SharedPreferences prefs = getSharedPreferences(Login.PREFS_NAME, MODE_PRIVATE);
-        int loggedInId = prefs.getInt(Login.KEY_USER_ID, -1);
-
-        if (loggedInId == -1) {
-            loadDummyData();
-            return;
-        }
-
-        AppDatabase.dbExecutor.execute(() -> {
-            List<User> users = db.userDao().getAllSync();
-            if (users != null && !users.isEmpty()) {
-                for (User user : users) {
-                    if (user.id == loggedInId) {
-                        currentUser = user;
-                        break;
-                    }
-                }
-
-                runOnUiThread(() -> {
-                    if (currentUser != null) {
-                        userNameTextView.setText(currentUser.name);
-
-                        // Load image path from database if it exists
-                        if (currentUser.profileImagePath != null) {
-                            File imgFile = new File(currentUser.profileImagePath);
-                            if (imgFile.exists()) {
-                                profileImageView.setImageURI(Uri.fromFile(imgFile));
-                            }
-                        }
-                    } else {
-                        loadDummyData();
-                    }
-                });
-            } else {
-                runOnUiThread(this::loadDummyData);
-            }
-        });
-    }
-
-    private void saveProfileImageToDatabase(Bitmap bitmap) {
-        AppDatabase.dbExecutor.execute(() -> {
-            // 1. Save Bitmap image to local file directory path
-            ContextWrapper cw = new ContextWrapper(getApplicationContext());
-            File directory = cw.getDir("profile_images", MODE_PRIVATE);
-            File file = new File(directory, "user_" + currentUser.id + ".png");
-
-            FileOutputStream fos = null;
-            try {
-                fos = new FileOutputStream(file);
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
-
-                // 2. Assign file path back to local model entity object
-                currentUser.profileImagePath = file.getAbsolutePath();
-
-                // 3. Write data update parameters straight to database tables
-                db.userDao().update(currentUser);
-
-                runOnUiThread(() -> Toast.makeText(UserProfile.this, "Profile picture saved!", Toast.LENGTH_SHORT).show());
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                runOnUiThread(() -> Toast.makeText(UserProfile.this, "Failed to save picture", Toast.LENGTH_SHORT).show());
-            } finally {
-                try {
-                    if (fos != null) fos.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
-
-    private void saveName() {
-        String newName = userNameEditText.getText().toString().trim();
-
-        if (newName.isEmpty()) {
-            userNameEditText.setError("Name cannot be empty");
-            return;
-        }
-
-        if (currentUser == null) {
-            userNameTextView.setText(newName);
-            exitEditMode();
-            return;
-        }
-
-        currentUser.name = newName;
-
-        AppDatabase.dbExecutor.execute(() -> {
-            db.userDao().update(currentUser);
-
-            getSharedPreferences(Login.PREFS_NAME, MODE_PRIVATE)
-                    .edit()
-                    .putString(Login.KEY_NAME, newName)
-                    .apply();
-
-            runOnUiThread(() -> {
-                userNameTextView.setText(newName);
-                exitEditMode();
-                Toast.makeText(UserProfile.this, "Name Updated successfully!", Toast.LENGTH_SHORT).show();
-            });
-        });
     }
 
     private void cancelEdit() {
@@ -248,8 +252,7 @@ public class UserProfile extends AppCompatActivity {
     }
 
     private void loadDummyData() {
-        String dummyName = "John Ben";
-        userNameTextView.setText(dummyName);
+        userNameTextView.setText("John Ben");
         Toast.makeText(this, "Dummy data loaded", Toast.LENGTH_SHORT).show();
     }
 }

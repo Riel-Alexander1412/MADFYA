@@ -1,17 +1,8 @@
 package com.mobile.madfya.data;
-
-import androidx.room.Entity;
-import androidx.room.PrimaryKey;
-
-/**
- * A notice shared on the Community page by a user or admin. When {@link #important}
- * is set, the repository also pushes a matching {@link Alert} into the activity feed.
- */
-@Entity(tableName = "notices")
 public class CommunityNotice {
 
-    @PrimaryKey(autoGenerate = true)
-    public int id;
+    public String firebaseKey;
+    public String id;
 
     public String title;
     public String body;
@@ -29,6 +20,7 @@ public class CommunityNotice {
     /** When true the notice is also broadcast as an alert. */
     public boolean important;
 
+    public CommunityNotice(){}
     public CommunityNotice(String title, String body, String tag, String authorName,
                            boolean authorIsAdmin, long timestamp, String locationName,
                            double distanceKm, int likes, int commentsCount,

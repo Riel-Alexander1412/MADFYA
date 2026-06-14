@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "681354059844",
+    "firebase_url": "https://madfya-4242c-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "madfya-4242c",
+    "storage_bucket": "madfya-4242c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:681354059844:android:7557b51f4b81ea39465c11",
+        "android_client_info": {
+          "package_name": "com.mobile.madfya"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1_oXPdllK2zjzt7TP7gK3tlDJrT9eWqg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

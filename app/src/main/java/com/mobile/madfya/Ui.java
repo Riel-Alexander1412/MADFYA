@@ -47,11 +47,17 @@ public final class Ui {
         return sb.toString();
     }
 
+    public static int avatarColorRes(boolean active, String id) {
+        if (!active) {
+            return R.color.avatar_gray;
+        }
+        return  R.color.avatar_blue;
+    }
     public static int avatarColorRes(boolean active, int id) {
         if (!active) {
             return R.color.avatar_gray;
         }
-        return (id % 2 == 1) ? R.color.avatar_blue : R.color.avatar_teal;
+        return  R.color.avatar_blue;
     }
 
     public static int alertIcon(String type) {

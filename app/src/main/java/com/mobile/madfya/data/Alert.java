@@ -1,18 +1,9 @@
 package com.mobile.madfya.data;
 
-import androidx.room.Entity;
-import androidx.room.PrimaryKey;
-
-/**
- * A single entry in the Alerts &amp; Notifications Center — the app's activity feed.
- * Entries come from seed data, from admin actions (user added/removed) and from
- * important community notices, so this one table is the shared "activity" log.
- */
-@Entity(tableName = "alerts")
 public class Alert {
 
-    @PrimaryKey(autoGenerate = true)
-    public int id;
+    public String firebaseKey;
+    public String id;
 
     public String title;
     /** Optional second line; may be null. */
@@ -24,6 +15,7 @@ public class Alert {
     public long timestamp;
     public boolean read;
 
+    public Alert(){}
     public Alert(String title, String message, String category, String type, long timestamp, boolean read) {
         this.title = title;
         this.message = message;

@@ -2,7 +2,6 @@ package com.mobile.madfya;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,19 +13,18 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.mobile.madfya.data.AppDatabase;
+import com.mobile.madfya.data.FirebaseRepository;
 import com.mobile.madfya.data.Sensors;
-import com.mobile.madfya.data.User;
 import com.mobile.madfya.ui.GaugeView;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.List;
+import android.util.Log;
 
 public class Dashboard extends AppCompatActivity {
 
-    private DrawerLayout    drawerLayout;
+    private DrawerLayout drawerLayout;
 
     private TextView tvWelcome, tvPhValue, tvTurbidityValue,
             tvTemperatureValue, tvFlowValue,
@@ -36,6 +34,8 @@ public class Dashboard extends AppCompatActivity {
 
     private RecyclerView rvAnnouncements;
     private AnnouncementAdapter announcementAdapter;
+
+    private FirebaseRepository repo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +47,8 @@ public class Dashboard extends AppCompatActivity {
             v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
             return insets;
         });
+
+        repo = FirebaseRepository.get();
 
         bindViews();
         setupDrawer();
@@ -63,21 +65,6 @@ public class Dashboard extends AppCompatActivity {
 
         findViewById(R.id.btn_profile).setOnClickListener(v ->
                 startActivity(new Intent(this, UserProfile.class)));
-
-        AppDatabase.dbExecutor.execute(() -> {
-            List<User> users = AppDatabase.get(this).userDao().getAllSync();
-            if (users.isEmpty()) {
-                Log.d("DEBUG_USERS", "No users in database!");
-            } else {
-                for (User u : users) {
-                    Log.d("DEBUG_USERS", "ID: " + u.id
-                            + " | Name: " + u.name
-                            + " | Password: " + u.password
-                            + " | Role: " + u.role
-                            + " | Active: " + u.active);
-                }
-            }
-        });
     }
 
     private void bindViews() {
@@ -94,17 +81,14 @@ public class Dashboard extends AppCompatActivity {
         badgeTemperature    = findViewById(R.id.badge_temperature);
         badgeFlow           = findViewById(R.id.badge_flow);
         gauge               = findViewById(R.id.health_gauge);
-        rvAnnouncements = findViewById(R.id.rv_announcements);
+        rvAnnouncements     = findViewById(R.id.rv_announcements);
 
         announcementAdapter = new AnnouncementAdapter();
-        rvAnnouncements.setLayoutManager(
-                new LinearLayoutManager(this));
-
+        rvAnnouncements.setLayoutManager(new LinearLayoutManager(this));
         rvAnnouncements.setAdapter(announcementAdapter);
     }
 
     private void setupDrawer() {
-        // Populate header
         TextView drawerName = findViewById(R.id.drawer_user_name);
         TextView drawerRole = findViewById(R.id.drawer_user_role);
 
@@ -116,7 +100,6 @@ public class Dashboard extends AppCompatActivity {
         drawerName.setText(name);
         drawerRole.setText(role);
 
-        // Top nav items
         findViewById(R.id.nav_reports).setOnClickListener(v -> {
             drawerLayout.closeDrawer(GravityCompat.START);
             startActivity(new Intent(this, ViewReport.class));
@@ -132,7 +115,6 @@ public class Dashboard extends AppCompatActivity {
             startActivity(new Intent(this, Safety.class));
         });
 
-        // Bottom items
         findViewById(R.id.nav_profile).setOnClickListener(v -> {
             drawerLayout.closeDrawer(GravityCompat.START);
             startActivity(new Intent(this, UserProfile.class));
@@ -148,9 +130,7 @@ public class Dashboard extends AppCompatActivity {
         new MaterialAlertDialogBuilder(this)
                 .setTitle("Log out")
                 .setMessage("Are you sure you want to log out?")
-                .setPositiveButton("Log out", (dialog, which) -> {
-                    Login.logout(this); // clears SharedPreferences + redirects to Login
-                })
+                .setPositiveButton("Log out", (dialog, which) -> Login.logout(this))
                 .setNegativeButton("Cancel", null)
                 .show();
     }
@@ -171,8 +151,12 @@ public class Dashboard extends AppCompatActivity {
     }
 
     private void observeSensors() {
-        AppDatabase.get(this).sensorsDao().getAll().observe(this, sensors -> {
-            if (sensors == null || sensors.isEmpty()) return;
+        repo.getAllSensors().observe(this, sensors -> {
+            if (sensors == null || sensors.isEmpty()){
+                Log.e("Dashboard", "Sensors List not found");
+                return;
+            };
+
             Sensors latest = null;
             for (int i = sensors.size() - 1; i >= 0; i--) {
                 if (sensors.get(i).filterId == 1) {
@@ -180,8 +164,10 @@ public class Dashboard extends AppCompatActivity {
                     break;
                 }
             }
-            if (latest == null) return;
-
+            if (latest == null){
+                Log.e("Dashboard", "No sensors found");
+                return;
+            };
 
             tvPhValue.setText(latest.ph_level != null ? latest.ph_level : "–");
             tvTurbidityValue.setText(latest.turbidity != null ? latest.turbidity : "–");
@@ -245,9 +231,9 @@ public class Dashboard extends AppCompatActivity {
         }
     }
 
-
+    // ── Announcements: observe alerts from Firebase ───────────────────────────
     private void observeAnnouncements() {
-        AppDatabase.get(this).alertDao().getAll().observe(this, alerts -> {
+        repo.getAllAlerts().observe(this, alerts -> {
             if (alerts == null) return;
             announcementAdapter.setData(alerts);
         });
@@ -258,9 +244,9 @@ public class Dashboard extends AppCompatActivity {
         nav.setSelectedItemId(R.id.menu_dashboard);
         nav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.menu_dashboard)  return true;
-            if (id == R.id.menu_community)  { startActivity(new Intent(this, Community.class)); return true; }
-            if (id == R.id.menu_status)     { startActivity(new Intent(this, Status.class));    return true; }
+            if (id == R.id.menu_dashboard) return true;
+            if (id == R.id.menu_community) { startActivity(new Intent(this, Community.class)); return true; }
+            if (id == R.id.menu_status)    { startActivity(new Intent(this, Status.class));    return true; }
             return false;
         });
     }

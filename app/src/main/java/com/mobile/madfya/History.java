@@ -9,7 +9,7 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.google.android.material.chip.ChipGroup;
-import com.mobile.madfya.data.AppDatabase;
+import com.mobile.madfya.data.FirebaseRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,50 +22,53 @@ public class History extends AppCompatActivity {
     private LineChart masterHistoricalChart;
     private ChipGroup chipGroupMetrics;
 
+    private FirebaseRepository repo;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
 
-        // Toolbar
         androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbarHistory);
         setSupportActionBar(toolbar);
         toolbar.setNavigationOnClickListener(v -> finish());
 
-        // Views
-        rvHistoricalLedger = findViewById(R.id.rvHistoricalLedger);
+        rvHistoricalLedger    = findViewById(R.id.rvHistoricalLedger);
         masterHistoricalChart = findViewById(R.id.masterHistoricalChart);
-        chipGroupMetrics = findViewById(R.id.chipGroupMetrics);
-        logs = new ArrayList<>();
+        chipGroupMetrics      = findViewById(R.id.chipGroupMetrics);
+
+        logs    = new ArrayList<>();
         adapter = new SensorLogAdapter(logs);
         rvHistoricalLedger.setLayoutManager(new LinearLayoutManager(this));
         rvHistoricalLedger.setAdapter(adapter);
-        AppDatabase.get(this).sensorsDao().getAll().observe(this, sensors -> {
+
+        repo = FirebaseRepository.get();
+
+        // ── Observe sensors from Firebase ─────────────────────────────────────
+        repo.getAllSensors().observe(this, sensors -> {
             logs.clear();
             for (com.mobile.madfya.data.Sensors s : sensors) {
-                String name = SensorUtil.getSensorName(s.filterId);
+                String name   = SensorUtil.getSensorName(s.filterId);
                 String coords = s.latitude + ", " + s.longitude;
-                String date = android.text.format.DateFormat.format("dd/MM/yyyy", s.CurrentTimeStamp).toString();
-                String time = android.text.format.DateFormat.format("hh:mm a", s.CurrentTimeStamp).toString();
-                double ph = s.ph_level != null ? Double.parseDouble(s.ph_level) : 0;
-                double turbidity = s.turbidity != null ? Double.parseDouble(s.turbidity) : 0;
-                double temperature = s.temperature != null ? Double.parseDouble(s.temperature) : 0;
-                double usage = s.water_flow_rate != null ? Double.parseDouble(s.water_flow_rate) : 0;
+                String date   = android.text.format.DateFormat.format("dd/MM/yyyy", s.CurrentTimeStamp).toString();
+                String time   = android.text.format.DateFormat.format("hh:mm a",    s.CurrentTimeStamp).toString();
+                double ph          = s.ph_level        != null ? Double.parseDouble(s.ph_level)        : 0;
+                double turbidity   = s.turbidity       != null ? Double.parseDouble(s.turbidity)       : 0;
+                double temperature = s.temperature     != null ? Double.parseDouble(s.temperature)     : 0;
+                double usage       = s.water_flow_rate != null ? Double.parseDouble(s.water_flow_rate) : 0;
                 logs.add(new SensorLog(name, coords, date, time, ph, turbidity, temperature, usage, s.latitude, s.longitude));
             }
             adapter.notifyDataSetChanged();
             loadChart("ph");
         });
 
-
-        // Chip listener
         chipGroupMetrics.setOnCheckedStateChangeListener((group, checkedIds) -> {
             if (checkedIds.isEmpty()) return;
             int id = checkedIds.get(0);
-            if (id == R.id.chipPh) loadChart("ph");
-            else if (id == R.id.chipTurbidity) loadChart("turbidity");
+            if      (id == R.id.chipPh)          loadChart("ph");
+            else if (id == R.id.chipTurbidity)   loadChart("turbidity");
             else if (id == R.id.chipTemperature) loadChart("temperature");
-            else if (id == R.id.chipUsage) loadChart("usage");
+            else if (id == R.id.chipUsage)       loadChart("usage");
         });
     }
 

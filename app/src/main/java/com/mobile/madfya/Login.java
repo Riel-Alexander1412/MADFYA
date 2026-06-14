@@ -3,17 +3,15 @@ package com.mobile.madfya;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import com.mobile.madfya.data.AppDatabase;
+import com.mobile.madfya.data.FirebaseRepository;
+import com.mobile.madfya.data.FirebaseSeed;
 import com.mobile.madfya.data.User;
-
-import java.util.List;
 
 public class Login extends AppCompatActivity {
 
@@ -34,38 +32,22 @@ public class Login extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        FirebaseSeed.populate();
+
         if (isLoggedIn()) {
             redirectByRole(getSavedRole());
             return;
         }
 
         setContentView(R.layout.activity_login);
-        bindViews();
 
-        btnLogin.setOnClickListener(v -> attemptLogin());
-
-        AppDatabase.dbExecutor.execute(() -> {
-            List<User> users = AppDatabase.get(this).userDao().getAllSync();
-            if (users.isEmpty()) {
-                Log.d("DEBUG_USERS", "No users in database!");
-            } else {
-                for (User u : users) {
-                    Log.d("DEBUG_USERS", "ID: " + u.id
-                            + " | Name: " + u.name
-                            + " | Password: " + u.password
-                            + " | Role: " + u.role
-                            + " | Active: " + u.active);
-                }
-            }
-        });
-    }
-
-    private void bindViews() {
         tilUsername = findViewById(R.id.tilUsername);
         tilPassword = findViewById(R.id.tilPassword);
         etUsername  = findViewById(R.id.etUsername);
         etPassword  = findViewById(R.id.etPassword);
         btnLogin    = findViewById(R.id.btnLogin);
+
+        btnLogin.setOnClickListener(v -> attemptLogin());
     }
 
     private void attemptLogin() {
@@ -77,7 +59,6 @@ public class Login extends AppCompatActivity {
         String password = etPassword.getText() != null
                 ? etPassword.getText().toString() : "";
 
-        // --- Validation ---
         if (TextUtils.isEmpty(username)) {
             tilUsername.setError("Username is required");
             etUsername.requestFocus();
@@ -97,69 +78,77 @@ public class Login extends AppCompatActivity {
         btnLogin.setEnabled(false);
         btnLogin.setText("Logging in...");
 
-
-        AppDatabase.dbExecutor.execute(() -> {
-            User user = AppDatabase.get(this).userDao().login(username, password);
-
-            runOnUiThread(() -> {
+        // ── Firebase login (replaces Room userDao().login()) ──────────────────
+        FirebaseRepository.get().login(username, password, new FirebaseRepository.OnResult<User>() {
+            @Override
+            public void onSuccess(User user) {
                 btnLogin.setEnabled(true);
                 btnLogin.setText("Login");
 
                 if (user == null) {
                     tilPassword.setError("Invalid username or password");
-                } else if (!user.active) {
-                    tilUsername.setError("This account has been deactivated. Contact your admin.");
                 } else {
                     saveSession(user);
                     redirectByRole(user.role);
                 }
-            });
+            }
+
+            @Override
+            public void onError(String message) {
+                btnLogin.setEnabled(true);
+                btnLogin.setText("Login");
+                tilPassword.setError("Error: " + message);
+            }
         });
     }
 
     private void redirectByRole(String role) {
         Intent intent;
-
         if (role == null) {
             intent = new Intent(this, Dashboard.class);
         } else {
             switch (role) {
                 case ROLE_ADMIN:
-                    intent = new Intent(this, AdminMain.class);
-                    break;
                 case ROLE_MAINTENANCE:
                     intent = new Intent(this, AdminMain.class);
-                    break;
-                case ROLE_RESIDENT:
-                    intent = new Intent(this, Dashboard.class);
                     break;
                 default:
                     intent = new Intent(this, Dashboard.class);
                     break;
             }
         }
-
         startActivity(intent);
         finish();
     }
 
     private void saveSession(User user) {
+        // Use user.id if firebaseKey is not set (backwards compatibility in repo)
+        String userId = user.firebaseKey != null ? user.firebaseKey : user.id;
         getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
                 .edit()
-                .putInt(KEY_USER_ID, user.id)
-                .putString(KEY_ROLE, user.role)
-                .putString(KEY_NAME, user.name)
+                .putString(KEY_USER_ID, userId)
+                .putString(KEY_ROLE,    user.role)
+                .putString(KEY_NAME,    user.name)
                 .apply();
     }
 
     private boolean isLoggedIn() {
-        return getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-                .getInt(KEY_USER_ID, -1) != -1;
+        try {
+            return getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                    .getString(KEY_USER_ID, null) != null;
+        } catch (ClassCastException e) {
+            getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit().clear().apply();
+            return false;
+        }
     }
 
     private String getSavedRole() {
-        return getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-                .getString(KEY_ROLE, null);
+        try {
+            return getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                    .getString(KEY_ROLE, null);
+        } catch (ClassCastException e) {
+            return null;
+        }
     }
 
     public static void logout(android.content.Context context) {
@@ -167,7 +156,6 @@ public class Login extends AppCompatActivity {
                 .edit()
                 .clear()
                 .apply();
-
         Intent intent = new Intent(context, Login.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         context.startActivity(intent);
