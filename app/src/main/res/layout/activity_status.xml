@@ -21,11 +21,15 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/statusBottomNav"
+        android:id="@+id/bottom_nav"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@color/white"
-        app:menu="@menu/menu_alerts_nav"
+        android:background="#FFFFFF"
+        app:elevation="8dp"
+        app:itemIconTint="@color/nav_selector"
+        app:itemTextColor="@color/nav_selector"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/menu_dashboard"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -34,7 +38,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintTop_toBottomOf="@id/statusToolbar"
-        app:layout_constraintBottom_toTopOf="@id/statusBottomNav"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_nav"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -45,64 +49,6 @@
             android:paddingHorizontal="16dp"
             android:paddingTop="24dp"
             android:paddingBottom="16dp">
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:strokeColor="#E0E0E0"
-                app:strokeWidth="1dp">
-
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:padding="16dp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <TextView
-                        android:id="@+id/tvSystemStatusLabel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="System ●\nStatus ●"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:textColor="#212121"
-                        android:lineSpacingExtra="4dp"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        tools:ignore="HardcodedText" />
-
-                    <TextView
-                        android:id="@+id/tvOnlineStatus"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="● Online"
-                        android:textColor="#00C853"
-                        android:textSize="22sp"
-                        android:textStyle="bold"
-                        app:layout_constraintEnd_toStartOf="@+id/tvUpdatedTime"
-                        app:layout_constraintStart_toEndOf="@id/tvSystemStatusLabel"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        tools:ignore="HardcodedText" />
-
-                    <TextView
-                        android:id="@+id/tvUpdatedTime"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Updated :\n2 minutes Ago"
-                        android:textAlignment="viewEnd"
-                        android:textColor="#212121"
-                        android:textStyle="bold"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        tools:ignore="HardcodedText" />
-                </androidx.constraintlayout.widget.ConstraintLayout>
-            </com.google.android.material.card.MaterialCardView>
-
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -135,9 +81,11 @@
                         android:textSize="48sp"
                         android:textStyle="bold"
                         android:textColor="#000000"
+                        android:id="@+id/tvWaterSafetyScore"
                         tools:ignore="HardcodedText" />
 
                     <TextView
+                        android:id="@+id/tvSafetyLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Safe For Consumption ✓"
@@ -148,6 +96,7 @@
             </com.google.android.material.card.MaterialCardView>
 
             <TextView
+                android:id="@+id/tvAlertBanner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="#F5BA5C"
@@ -212,7 +161,10 @@
                         <com.github.mikephil.charting.charts.LineChart
                             android:id="@+id/PhChart"
                             android:layout_width="match_parent"
-                            android:layout_height="56dp"/>
+                            android:layout_height="65dp"
+                            android:layout_alignParentBottom="true"
+                            android:layout_marginBottom="-2dp"
+                            />
                         <ImageView
                             android:id="@+id/ivPhIcon"
                             android:layout_width="20dp"
@@ -280,7 +232,9 @@
                         <com.github.mikephil.charting.charts.LineChart
                             android:id="@+id/TurbChart"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent" />
+                            android:layout_height="65dp"
+                            android:layout_alignParentBottom="true"
+                            android:layout_marginBottom="-2dp"/>
                         <ImageView
                             android:id="@+id/ivTurbidityIcon"
                             android:layout_width="20dp"
@@ -351,11 +305,14 @@
                     app:cardBackgroundColor="#FFCDD2">
                     <RelativeLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent">
+                        android:layout_height="match_parent"
+                        >
                         <com.github.mikephil.charting.charts.LineChart
                             android:id="@+id/TempChart"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent" />
+                            android:layout_height="65dp"
+                            android:layout_alignParentBottom="true"
+                            android:layout_marginBottom="-2dp"/>
                         <ImageView
                             android:id="@+id/ivTempIcon"
                             android:layout_width="20dp"
@@ -419,11 +376,14 @@
                     app:cardBackgroundColor="#C8E6C9">
                     <RelativeLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent">
+                        android:layout_height="match_parent"
+                        >
                         <com.github.mikephil.charting.charts.LineChart
                             android:id="@+id/WaterChart"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent" />
+                            android:layout_height="65dp"
+                            android:layout_alignParentBottom="true"
+                            android:layout_marginBottom="-2dp"/>
                         <ImageView
                             android:id="@+id/ivWaterIcon"
                             android:layout_width="20dp"

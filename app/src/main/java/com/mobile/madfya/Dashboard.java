@@ -173,7 +173,15 @@ public class Dashboard extends AppCompatActivity {
     private void observeSensors() {
         AppDatabase.get(this).sensorsDao().getAll().observe(this, sensors -> {
             if (sensors == null || sensors.isEmpty()) return;
-            Sensors latest = sensors.get(0);
+            Sensors latest = null;
+            for (int i = sensors.size() - 1; i >= 0; i--) {
+                if (sensors.get(i).filterId == 1) {
+                    latest = sensors.get(i);
+                    break;
+                }
+            }
+            if (latest == null) return;
+
 
             tvPhValue.setText(latest.ph_level != null ? latest.ph_level : "–");
             tvTurbidityValue.setText(latest.turbidity != null ? latest.turbidity : "–");
@@ -185,11 +193,25 @@ public class Dashboard extends AppCompatActivity {
             gauge.setPercent(hp);
             updateHealthCard(hp);
 
-            String status = latest.status != null ? latest.status : "OPERATIONAL";
-            updateBadge(badgePh, status);
-            updateBadge(badgeTurbidity, status);
-            updateBadge(badgeTemperature, status);
-            updateBadge(badgeFlow, status);
+            try {
+                double ph = Double.parseDouble(latest.ph_level);
+                updateBadge(badgePh, (ph < 6.5 || ph > 8.5) ? "WARNING" : "OPERATIONAL");
+            } catch (Exception ignored) {}
+
+            try {
+                double turb = Double.parseDouble(latest.turbidity);
+                updateBadge(badgeTurbidity, turb > 4 ? "WARNING" : "OPERATIONAL");
+            } catch (Exception ignored) {}
+
+            try {
+                double temp = Double.parseDouble(latest.temperature);
+                updateBadge(badgeTemperature, (temp < 20 || temp > 30) ? "WARNING" : "OPERATIONAL");
+            } catch (Exception ignored) {}
+
+            try {
+                double flow = Double.parseDouble(latest.water_flow_rate);
+                updateBadge(badgeFlow, flow < 50 ? "WARNING" : "OPERATIONAL");
+            } catch (Exception ignored) {}
         });
     }
 

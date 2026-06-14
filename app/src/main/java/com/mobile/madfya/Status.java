@@ -20,6 +20,8 @@ import java.util.List;
 public class Status extends AppCompatActivity {
 
     private ActivityStatusBinding binding;
+    private android.widget.TextView tvSafetyScore;
+    private android.widget.TextView tvSafetyLabel;
     private <T> List<T> takeLast(List<T> list, int n) {
         if (list.size() <= n) return list;
         return list.subList(list.size() - n, list.size());
@@ -30,22 +32,22 @@ public class Status extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityStatusBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        tvSafetyScore = binding.tvWaterSafetyScore;
+        tvSafetyLabel = binding.tvSafetyLabel;
 
         // 1. Toolbar and History button setup
         if (binding.statusToolbar != null) {
             binding.statusToolbar.setNavigationOnClickListener(v -> onBackPressed());
         }
+
         binding.btnViewHistory.setOnClickListener(v -> {
             startActivity(new Intent(this, History.class));
         });
+
         seedTestData();
 
-        // 3. Setup Bottom Navigation
-        if (binding.statusBottomNav != null) {
-            // Set the active item to Status silently
-            binding.statusBottomNav.getMenu().findItem(R.id.menu_alerts_status).setChecked(true);
-
-        }
+        // 3. Setup Bottom Navigation - FIXED
+        setupBottomNav();
     }
 
     private void loadRoomGraphs() {
@@ -67,6 +69,8 @@ public class Status extends AppCompatActivity {
 
                 if (s.filterId == 1) {
                     updateStatusBadges(s);
+                    updateAlertBanner(s);
+                    updateSafetyScore(s);
                     try { phData.add(new Entry(iMain, Float.parseFloat(s.ph_level))); } catch (Exception ignored) {}
                     try { turbData.add(new Entry(iMain, Float.parseFloat(s.turbidity))); } catch (Exception ignored) {}
                     try { tempData.add(new Entry(iMain, Float.parseFloat(s.temperature))); } catch (Exception ignored) {}
@@ -85,62 +89,139 @@ public class Status extends AppCompatActivity {
             }
 
             int WINDOW = 10;
-            if (!phData.isEmpty())    setupSparkline(binding.PhChart,      takeLast(phData, WINDOW));
-            if (!turbData.isEmpty())  setupSparkline(binding.TurbChart,    takeLast(turbData, WINDOW));
-            if (!tempData.isEmpty())  setupSparkline(binding.TempChart,    takeLast(tempData, WINDOW));
-            if (!flowData.isEmpty())  setupSparkline(binding.WaterChart,   takeLast(flowData, WINDOW));
-            if (!dataA.isEmpty())     setupSparkline(binding.chartFilterA, takeLast(dataA, WINDOW));
-            if (!dataB.isEmpty())     setupSparkline(binding.chartFilterB, takeLast(dataB, WINDOW));
-            if (!dataC.isEmpty())     setupSparkline(binding.chartFilterC, takeLast(dataC, WINDOW));
+            if (!phData.isEmpty())   setupSparkline(binding.PhChart,      takeLast(phData, WINDOW),   Color.parseColor("#FFCC80"), Color.parseColor("#E65100"));
+            if (!turbData.isEmpty()) setupSparkline(binding.TurbChart,    takeLast(turbData, WINDOW), Color.parseColor("#80DEEA"), Color.parseColor("#00838F"));
+            if (!tempData.isEmpty()) setupSparkline(binding.TempChart,    takeLast(tempData, WINDOW), Color.parseColor("#EF9A9A"), Color.parseColor("#C62828"));
+            if (!flowData.isEmpty()) setupSparkline(binding.WaterChart,   takeLast(flowData, WINDOW), Color.parseColor("#A5D6A7"), Color.parseColor("#2E7D32"));
+            if (!dataA.isEmpty())    setupSparkline(binding.chartFilterA, takeLast(dataA, WINDOW),    -1, Color.parseColor("#005A9E"));
+            if (!dataB.isEmpty())    setupSparkline(binding.chartFilterB, takeLast(dataB, WINDOW),    -1, Color.parseColor("#005A9E"));
+            if (!dataC.isEmpty())    setupSparkline(binding.chartFilterC, takeLast(dataC, WINDOW),    -1, Color.parseColor("#005A9E"));
         });
     }
+    private void updateSafetyScore(com.mobile.madfya.data.Sensors s) {
+        int score = 0;
+        try { double ph = Double.parseDouble(s.ph_level);
+            if (ph >= 6.5 && ph <= 8.5) score += 25; } catch (Exception ignored) {}
+        try { double turb = Double.parseDouble(s.turbidity);
+            if (turb <= 4) score += 25; } catch (Exception ignored) {}
+        try { double temp = Double.parseDouble(s.temperature);
+            if (temp >= 20 && temp <= 30) score += 25; } catch (Exception ignored) {}
+        try { double flow = Double.parseDouble(s.water_flow_rate);
+            if (flow >= 50) score += 25; } catch (Exception ignored) {}
 
-    private void setupSparkline(LineChart lineChart, List<Entry> dataPoints) {
+        binding.tvWaterSafetyScore.setText(score + "%");
+
+        if (score >= 75) {
+            binding.tvSafetyLabel.setText("Safe For Consumption ✓");
+            binding.tvSafetyLabel.setTextColor(Color.parseColor("#66BB6A"));
+        } else if (score >= 50) {
+            binding.tvSafetyLabel.setText("Use With Caution ⚠");
+            binding.tvSafetyLabel.setTextColor(Color.parseColor("#F57C00"));
+        } else {
+            binding.tvSafetyLabel.setText("Not Safe For Consumption ✗");
+            binding.tvSafetyLabel.setTextColor(Color.parseColor("#EF5350"));
+        }
+    }
+    private void updateAlertBanner(com.mobile.madfya.data.Sensors s) {
+        List<String> issues = new ArrayList<>();
+
+        try {
+            double ph = Double.parseDouble(s.ph_level);
+            if (ph < 6.5) issues.add("pH is too low (" + s.ph_level + " pH)");
+            else if (ph > 8.5) issues.add("pH is above safe threshold (" + s.ph_level + " pH)");
+        } catch (Exception ignored) {}
+
+        try {
+            double turb = Double.parseDouble(s.turbidity);
+            if (turb > 4) issues.add("Turbidity is high (" + s.turbidity + " NTU)");
+        } catch (Exception ignored) {}
+
+        try {
+            double temp = Double.parseDouble(s.temperature);
+            if (temp < 20) issues.add("Temperature is too low (" + s.temperature + "°C)");
+            else if (temp > 30) issues.add("Temperature is too high (" + s.temperature + "°C)");
+        } catch (Exception ignored) {}
+
+        try {
+            double flow = Double.parseDouble(s.water_flow_rate);
+            if (flow < 50) issues.add("Water flow is low (" + s.water_flow_rate + "L)");
+        } catch (Exception ignored) {}
+
+        if (issues.isEmpty()) {
+            binding.tvAlertBanner.setVisibility(android.view.View.GONE);
+        } else {
+            binding.tvAlertBanner.setVisibility(android.view.View.VISIBLE);
+            binding.tvAlertBanner.setText("⚠ " + android.text.TextUtils.join(" • ", issues) + ". Filter inspection recommended.");
+        }
+    }
+    private void setupBottomNav() {
+        if (binding.bottomNav != null) {
+            // Set current selected item to Status
+            binding.bottomNav.setSelectedItemId(R.id.menu_alerts_status);
+
+            binding.bottomNav.setOnItemSelectedListener(item -> {
+                int id = item.getItemId();
+                if (id == R.id.menu_alerts_status) {
+                    return true;  // Already on Status
+                }
+                if (id == R.id.menu_dashboard) {
+                    startActivity(new Intent(this, Dashboard.class));
+                    return true;
+                }
+                if (id == R.id.menu_community) {
+                    startActivity(new Intent(this, Community.class));
+                    return true;
+                }
+                return false;
+            });
+        }
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Ensure the correct item is selected when returning to this activity
+        if (binding.bottomNav != null) {
+            binding.bottomNav.setSelectedItemId(R.id.menu_alerts_status);
+        }
+    }
+    private void setupSparkline(LineChart lineChart, List<Entry> dataPoints, int fillColor, int lineColor) {
         if (lineChart == null || dataPoints == null || dataPoints.isEmpty()) return;
 
-        // Create line collection dataset
         LineDataSet dataSet = new LineDataSet(dataPoints, "Water Usage");
-
-        // CUBIC_BEZIER creates the smooth curved wave geometry matching Figma
         dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
-        dataSet.setColor(Color.parseColor("#005A9E")); // Set line stroke to theme primary blue
+        dataSet.setColor(lineColor);
         dataSet.setLineWidth(2f);
-        dataSet.setDrawCircles(false); // Hide individual node dots
-        dataSet.setDrawValues(false);  // Hide value metric strings on top of line
-
-        // Apply smooth fading area layout under the line curve
+        dataSet.setDrawCircles(false);
+        dataSet.setDrawValues(false);
         dataSet.setDrawFilled(true);
-        Drawable fadeGradient = ContextCompat.getDrawable(this, R.drawable.bg_graph_gradient);
-        if (fadeGradient != null) {
-            dataSet.setFillDrawable(fadeGradient);
+
+        if (fillColor == -1) {
+            Drawable fadeGradient = ContextCompat.getDrawable(this, R.drawable.bg_graph_gradient);
+            if (fadeGradient != null) {
+                dataSet.setFillDrawable(fadeGradient);
+            } else {
+                dataSet.setFillColor(Color.parseColor("#20005A9E"));
+            }
         } else {
-            dataSet.setFillColor(Color.parseColor("#20005A9E")); // Backup semi-transparent tint block
+            dataSet.setFillColor(fillColor);
+            dataSet.setFillAlpha(255);
         }
 
         lineChart.setData(new LineData(dataSet));
-
-        // Strip default chart styling elements (Grid meshes, numbers, interactive lines)
         lineChart.getDescription().setEnabled(false);
         lineChart.getLegend().setEnabled(false);
         lineChart.setDrawGridBackground(false);
-        lineChart.setTouchEnabled(false); // Keeps view flat and non-draggable
-
-        // Hide X-Axis elements
+        lineChart.setTouchEnabled(false);
         lineChart.getXAxis().setDrawGridLines(false);
         lineChart.getXAxis().setDrawAxisLine(false);
         lineChart.getXAxis().setDrawLabels(false);
-
-        // Hide Left Y-Axis elements
         lineChart.getAxisLeft().setDrawGridLines(false);
         lineChart.getAxisLeft().setDrawAxisLine(false);
         lineChart.getAxisLeft().setDrawLabels(false);
-
-        // Hide Right Y-Axis elements
         lineChart.getAxisRight().setDrawGridLines(false);
         lineChart.getAxisRight().setDrawAxisLine(false);
         lineChart.getAxisRight().setDrawLabels(false);
         lineChart.setVisibility(android.view.View.VISIBLE);
-        // Force viewport drawing pass
         lineChart.invalidate();
     }
 
