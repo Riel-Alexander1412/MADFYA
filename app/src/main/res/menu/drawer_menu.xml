@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:id="@+id/group_main">
+        <item
+            android:id="@+id/nav_reports"
+            android:icon="@drawable/ic_warning"
+            android:title="Reports"
+            android:orderInCategory="1" />
+        <item
+            android:id="@+id/nav_alerts"
+            android:icon="@drawable/ic_notifications"
+            android:title="Alerts"
+            android:orderInCategory="2" />
+        <item
+            android:id="@+id/nav_water_safety"
+            android:icon="@drawable/ic_water_drop"
+            android:title="Water Safety"
+            android:orderInCategory="3" />
+    </group>
+
+    <group android:id="@+id/group_account">
+        <item
+            android:id="@+id/nav_profile"
+            android:icon="@drawable/ic_person"
+            android:title="Profile"
+            android:orderInCategory="990" />
+        <item
+            android:id="@+id/nav_logout"
+            android:icon="@drawable/ic_logout"
+            android:title="Logout"
+            android:orderInCategory="999" />
+    </group>
+
+</menu>

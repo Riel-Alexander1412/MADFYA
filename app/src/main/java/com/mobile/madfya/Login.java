@@ -1,7 +1,6 @@
 package com.mobile.madfya;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -23,7 +22,6 @@ public class Login extends AppCompatActivity {
     public static final String KEY_ROLE    = "logged_in_role";
     public static final String KEY_NAME    = "logged_in_name";
 
-    // Roles — compare against these constants everywhere in the app.
     public static final String ROLE_ADMIN       = "Admin";
     public static final String ROLE_MAINTENANCE = "Maintenance";
     public static final String ROLE_RESIDENT    = "Resident";
@@ -31,8 +29,6 @@ public class Login extends AppCompatActivity {
     private TextInputLayout   tilUsername, tilPassword;
     private TextInputEditText etUsername,  etPassword;
     private MaterialButton    btnLogin;
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,8 +44,6 @@ public class Login extends AppCompatActivity {
 
         btnLogin.setOnClickListener(v -> attemptLogin());
 
-
-        // Paste this temporarily in any Activity — e.g. your Login onCreate()
         AppDatabase.dbExecutor.execute(() -> {
             List<User> users = AppDatabase.get(this).userDao().getAllSync();
             if (users.isEmpty()) {
@@ -138,6 +132,7 @@ public class Login extends AppCompatActivity {
                     break;
                 case ROLE_RESIDENT:
                     intent = new Intent(this, Dashboard.class);
+                    break;
                 default:
                     intent = new Intent(this, Dashboard.class);
                     break;
@@ -147,7 +142,6 @@ public class Login extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
-
 
     private void saveSession(User user) {
         getSharedPreferences(PREFS_NAME, MODE_PRIVATE)

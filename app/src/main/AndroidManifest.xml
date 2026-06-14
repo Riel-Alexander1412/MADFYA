@@ -45,7 +45,7 @@
             android:exported="false" />
         <activity
             android:name=".CreateReport"
-            android:exported="false" />
+            android:exported="true" />
         <activity
             android:name=".ViewReport"
             android:exported="false" />

@@ -6,42 +6,28 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
+import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.mobile.madfya.data.AppDatabase;
 import com.mobile.madfya.data.Sensors;
 import com.mobile.madfya.ui.GaugeView;
 
-import java.util.List;
-
-/**
- * Resident / user dashboard.
- * Reads the latest sensor row and displays PH, turbidity, temperature,
- * water flow and system HP. Also shows the most recent announcement from
- * the alerts table.
- */
 public class Dashboard extends AppCompatActivity {
 
-    // Sensor value TextViews
-    private TextView tvWelcome;
-    private TextView tvPhValue;
-    private TextView tvTurbidityValue;
-    private TextView tvTemperatureValue;
-    private TextView tvFlowValue;
-    private TextView tvHpValue;
-    private TextView tvHealthSubtitle;
+    private DrawerLayout    drawerLayout;
 
-    // Badge TextViews (Normal / Warning)
-    private TextView badgePh;
-    private TextView badgeTurbidity;
-    private TextView badgeTemperature;
-    private TextView badgeFlow;
+    private TextView tvWelcome, tvPhValue, tvTurbidityValue,
+            tvTemperatureValue, tvFlowValue,
+            tvHpValue, tvHealthSubtitle;
+    private TextView badgePh, badgeTurbidity, badgeTemperature, badgeFlow;
+    private GaugeView gauge;
 
-    // Announcement
-    private TextView tvAnnouncementTitle;
-    private TextView tvAnnouncementBody;
+    private TextView tvAnnouncementTitle, tvAnnouncementBody;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,14 +41,14 @@ public class Dashboard extends AppCompatActivity {
         });
 
         bindViews();
+        setupDrawer();
         setWelcomeName();
         observeSensors();
         observeAnnouncements();
         setupBottomNav();
 
-        findViewById(R.id.btn_menu).setOnClickListener(v -> {
-            // TODO: open navigation drawer if you add one
-        });
+        findViewById(R.id.btn_menu).setOnClickListener(v ->
+                drawerLayout.openDrawer(GravityCompat.START));
 
         findViewById(R.id.btn_notifications).setOnClickListener(v ->
                 startActivity(new Intent(this, Alerts.class)));
@@ -71,11 +57,8 @@ public class Dashboard extends AppCompatActivity {
                 startActivity(new Intent(this, UserProfile.class)));
     }
 
-    // -------------------------------------------------------------------------
-    // View binding
-    // -------------------------------------------------------------------------
-
     private void bindViews() {
+        drawerLayout        = findViewById(R.id.drawer_layout);
         tvWelcome           = findViewById(R.id.tv_welcome);
         tvPhValue           = findViewById(R.id.tv_ph_value);
         tvTurbidityValue    = findViewById(R.id.tv_turbidity_value);
@@ -87,23 +70,71 @@ public class Dashboard extends AppCompatActivity {
         badgeTurbidity      = findViewById(R.id.badge_turbidity);
         badgeTemperature    = findViewById(R.id.badge_temperature);
         badgeFlow           = findViewById(R.id.badge_flow);
+        gauge               = findViewById(R.id.health_gauge);
         tvAnnouncementTitle = findViewById(R.id.tv_announcement_title);
         tvAnnouncementBody  = findViewById(R.id.tv_announcement_body);
+    }
 
-        GaugeView gauge = findViewById(R.id.health_gauge);
+    private void setupDrawer() {
+        // Populate header
+        TextView drawerName = findViewById(R.id.drawer_user_name);
+        TextView drawerRole = findViewById(R.id.drawer_user_role);
 
-        AppDatabase.get(this).sensorsDao().getAll().observe(this, sensors -> {
-            if (sensors == null || sensors.isEmpty()) return;
-            Sensors latest = sensors.get(0);
-            gauge.setPercent(latest.HP);       // drives the arc
-            tvHpValue.setText(latest.HP + "%");
-            updateHealthCard(latest.HP);
+        String name = getSharedPreferences(Login.PREFS_NAME, MODE_PRIVATE)
+                .getString(Login.KEY_NAME, "User");
+        String role = getSharedPreferences(Login.PREFS_NAME, MODE_PRIVATE)
+                .getString(Login.KEY_ROLE, "Resident");
+
+        drawerName.setText(name);
+        drawerRole.setText(role);
+
+        // Top nav items
+        findViewById(R.id.nav_reports).setOnClickListener(v -> {
+            drawerLayout.closeDrawer(GravityCompat.START);
+            startActivity(new Intent(this, ViewReport.class));
+        });
+
+        findViewById(R.id.nav_alerts).setOnClickListener(v -> {
+            drawerLayout.closeDrawer(GravityCompat.START);
+            startActivity(new Intent(this, Alerts.class));
+        });
+
+        findViewById(R.id.nav_water_safety).setOnClickListener(v -> {
+            drawerLayout.closeDrawer(GravityCompat.START);
+            startActivity(new Intent(this, Safety.class));
+        });
+
+        // Bottom items
+        findViewById(R.id.nav_profile).setOnClickListener(v -> {
+            drawerLayout.closeDrawer(GravityCompat.START);
+            startActivity(new Intent(this, UserProfile.class));
+        });
+
+        findViewById(R.id.nav_logout).setOnClickListener(v -> {
+            drawerLayout.closeDrawer(GravityCompat.START);
+            confirmLogout();
         });
     }
 
-    // -------------------------------------------------------------------------
-    // Welcome name from SharedPreferences
-    // -------------------------------------------------------------------------
+    private void confirmLogout() {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Log out")
+                .setMessage("Are you sure you want to log out?")
+                .setPositiveButton("Log out", (dialog, which) -> {
+                    Login.logout(this); // clears SharedPreferences + redirects to Login
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
 
     private void setWelcomeName() {
         String name = getSharedPreferences(Login.PREFS_NAME, MODE_PRIVATE)
@@ -111,29 +142,21 @@ public class Dashboard extends AppCompatActivity {
         tvWelcome.setText("Welcome, " + name);
     }
 
-    // -------------------------------------------------------------------------
-    // Sensor LiveData observer
-    // -------------------------------------------------------------------------
-
     private void observeSensors() {
         AppDatabase.get(this).sensorsDao().getAll().observe(this, sensors -> {
             if (sensors == null || sensors.isEmpty()) return;
-
-            // Use the most recently updated sensor row.
             Sensors latest = sensors.get(0);
 
-            // Populate values — fall back to "–" if null.
             tvPhValue.setText(latest.ph_level != null ? latest.ph_level : "–");
             tvTurbidityValue.setText(latest.turbidity != null ? latest.turbidity : "–");
             tvTemperatureValue.setText(latest.temperature != null ? latest.temperature : "–");
             tvFlowValue.setText(latest.water_flow_rate != null ? latest.water_flow_rate : "–");
 
-            // HP gauge
             int hp = latest.HP;
             tvHpValue.setText(hp + "%");
+            gauge.setPercent(hp);
             updateHealthCard(hp);
 
-            // Status badges
             String status = latest.status != null ? latest.status : "OPERATIONAL";
             updateBadge(badgePh, status);
             updateBadge(badgeTurbidity, status);
@@ -142,10 +165,6 @@ public class Dashboard extends AppCompatActivity {
         });
     }
 
-    /**
-     * Sets badge text and colour depending on sensor status.
-     * Extend the switch for DISABLED, CRITICAL, etc.
-     */
     private void updateBadge(TextView badge, String status) {
         switch (status) {
             case "WARNING":
@@ -158,7 +177,7 @@ public class Dashboard extends AppCompatActivity {
                 badge.setTextColor(getColor(R.color.badge_disabled_text));
                 badge.setBackgroundResource(R.drawable.bg_badge_disabled);
                 break;
-            default: // OPERATIONAL
+            default:
                 badge.setText("Normal");
                 badge.setTextColor(getColor(R.color.badge_normal_text));
                 badge.setBackgroundResource(R.drawable.bg_badge_normal);
@@ -166,10 +185,9 @@ public class Dashboard extends AppCompatActivity {
         }
     }
 
-    /** Updates the health subtitle and gauge colour based on HP percentage. */
     private void updateHealthCard(int hp) {
         if (hp >= 80) {
-            tvHealthSubtitle.setText("System is currently healthy. Replacement is unnecessary");
+            tvHealthSubtitle.setText("System is currently healthy. Replacement is unnecessary.");
         } else if (hp >= 50) {
             tvHealthSubtitle.setText("System is operating normally. Schedule maintenance soon.");
         } else {
@@ -177,9 +195,6 @@ public class Dashboard extends AppCompatActivity {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Announcements observer — show the latest critical/community alert
-    // -------------------------------------------------------------------------
 
     private void observeAnnouncements() {
         AppDatabase.get(this).alertDao().getAll().observe(this, alerts -> {
@@ -188,33 +203,20 @@ public class Dashboard extends AppCompatActivity {
                 tvAnnouncementBody.setText("");
                 return;
             }
-            // Pick the first (most recent) alert as the featured announcement.
             com.mobile.madfya.data.Alert a = alerts.get(0);
             tvAnnouncementTitle.setText(a.title);
             tvAnnouncementBody.setText(a.message != null ? a.message : "");
         });
     }
 
-    // -------------------------------------------------------------------------
-    // Bottom navigation
-    // -------------------------------------------------------------------------
-
     private void setupBottomNav() {
         BottomNavigationView nav = findViewById(R.id.bottom_nav);
         nav.setSelectedItemId(R.id.menu_dashboard);
         nav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.menu_dashboard) {
-                return true; // already here
-            }
-            if (id == R.id.menu_community) {
-                startActivity(new Intent(this, Community.class));
-                return true;
-            }
-            if (id == R.id.menu_status) {
-                startActivity(new Intent(this, Status.class));
-                return true;
-            }
+            if (id == R.id.menu_dashboard)  return true;
+            if (id == R.id.menu_community)  { startActivity(new Intent(this, Community.class)); return true; }
+            if (id == R.id.menu_status)     { startActivity(new Intent(this, Status.class));    return true; }
             return false;
         });
     }

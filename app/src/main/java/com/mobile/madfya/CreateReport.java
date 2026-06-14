@@ -16,7 +16,6 @@ import android.provider.MediaStore;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -46,7 +45,6 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.mobile.madfya.data.AppDatabase;
 import com.mobile.madfya.data.Reports;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -54,31 +52,23 @@ import java.util.List;
 import java.util.Locale;
 
 public class CreateReport extends AppCompatActivity implements OnMapReadyCallback {
-
-    // ── Permission request codes ──────────────────────────────────────────────
     private static final int REQUEST_LOCATION_PERMISSION = 101;
     private static final int REQUEST_CAMERA_PERMISSION   = 102;
-
-    // ── Views ─────────────────────────────────────────────────────────────────
     private AutoCompleteTextView  spinnerCategory;
     private TextInputEditText     etName, etLocation, etDate, etTime, etDetails;
     private TextInputLayout       tilLocation;
     private CardView              cardImagePreview;
     private ImageView             ivPreview;
     private MaterialButton        btnUploadImage, btnSubmit;
-
-    // ── State ─────────────────────────────────────────────────────────────────
     private double   pickedLat    = 0.0;
     private double   pickedLng    = 0.0;
-    private String   savedImagePath = null;  // absolute path stored in DB
-    private Uri      cameraImageUri = null;  // URI for camera capture temp file
+    private String   savedImagePath = null;
+    private Uri      cameraImageUri = null;
     private GoogleMap googleMap;
     private final Calendar calendar = Calendar.getInstance();
 
-    // ── Location client ───────────────────────────────────────────────────────
     private FusedLocationProviderClient fusedLocation;
 
-    // ── Activity result launchers ─────────────────────────────────────────────
 
     /** Pick image from gallery */
     private final ActivityResultLauncher<String> galleryLauncher =
@@ -93,10 +83,6 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
                     handleImageUri(cameraImageUri);
                 }
             });
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Lifecycle
-    // ─────────────────────────────────────────────────────────────────────────
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,7 +105,6 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
         setupMapFragment();
         fetchGpsLocation();
 
-        // Navigation
         findViewById(R.id.btn_back).setOnClickListener(v -> {
             startActivity(new Intent(this, ViewReport.class));
             finish();
@@ -131,11 +116,6 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
 
         findViewById(R.id.btn_remove_image).setOnClickListener(v -> clearImage());
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // View binding
-    // ─────────────────────────────────────────────────────────────────────────
-
     private void bindViews() {
         spinnerCategory  = findViewById(R.id.spinner_category);
         etName           = findViewById(R.id.et_name);
@@ -150,9 +130,6 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
         btnSubmit        = findViewById(R.id.btn_submit);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Category dropdown
-    // ─────────────────────────────────────────────────────────────────────────
 
     private void setupCategoryDropdown() {
         String[] categories = {"Damaged Pipes", "Unusual Behavior", "Miscellaneous"};
@@ -161,19 +138,12 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
         spinnerCategory.setAdapter(adapter);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Pre-fill name from session
-    // ─────────────────────────────────────────────────────────────────────────
 
     private void prefillUserName() {
         String name = getSharedPreferences(Login.PREFS_NAME, MODE_PRIVATE)
                 .getString(Login.KEY_NAME, "");
         etName.setText(name);
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Date / time — default to now, tappable to change
-    // ─────────────────────────────────────────────────────────────────────────
 
     private void prefillDateTime() {
         updateDateField();
@@ -225,10 +195,6 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
                 .format(calendar.getTime()));
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Google Maps mini-preview
-    // ─────────────────────────────────────────────────────────────────────────
-
     private void setupMapFragment() {
         SupportMapFragment mapFragment = (SupportMapFragment)
                 getSupportFragmentManager().findFragmentById(R.id.map_fragment);
@@ -249,10 +215,6 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
         googleMap.addMarker(new MarkerOptions().position(point).title("Incident location"));
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, 16f));
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // GPS location fetching
-    // ─────────────────────────────────────────────────────────────────────────
 
     private void fetchGpsLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -314,10 +276,6 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Image — camera or gallery
-    // ─────────────────────────────────────────────────────────────────────────
-
     private void showImageSourceDialog() {
         new MaterialAlertDialogBuilder(this)
                 .setTitle("Add photo")
@@ -367,9 +325,6 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
         btnUploadImage.setText("Upload image");
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Submit
-    // ─────────────────────────────────────────────────────────────────────────
 
     private void submitReport() {
         // Validate
@@ -387,13 +342,11 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
 
-        // Get logged-in user ID
         int userId = getSharedPreferences(Login.PREFS_NAME, MODE_PRIVATE)
                 .getInt(Login.KEY_USER_ID, -1);
 
-        // Build the report — timestamp is set inside Reports constructor
         Reports report = new Reports(
-                category,           // title = category for now; adjust if you add a title field
+                category,
                 details,
                 category,
                 userId,
@@ -402,7 +355,6 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
                 savedImagePath
         );
 
-        // Override the auto timestamp with the user-selected calendar time
         report.ReportedTimeStamps = calendar.getTimeInMillis();
 
         btnSubmit.setEnabled(false);
