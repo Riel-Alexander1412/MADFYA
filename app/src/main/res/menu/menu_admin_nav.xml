@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/menu_admin_stations"
-        android:icon="@drawable/ic_water_drop"
-        android:title="@string/nav_stations" />
+        android:id="@+id/menu_admin_userview"
+        android:icon="@drawable/ic_visibility"
+        android:title="@string/nav_user_view" />
     <item
         android:id="@+id/menu_admin_reports"
         android:icon="@drawable/ic_bar_chart"

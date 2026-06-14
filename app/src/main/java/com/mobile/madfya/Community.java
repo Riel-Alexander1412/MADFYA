@@ -1,6 +1,11 @@
 package com.mobile.madfya;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.text.Editable;
 import android.view.LayoutInflater;
@@ -8,10 +13,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -20,6 +29,9 @@ import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.ChipGroup;
@@ -32,6 +44,7 @@ import com.mobile.madfya.data.Comment;
 import com.mobile.madfya.data.CommunityNotice;
 import com.mobile.madfya.data.MadfyaRepository;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -45,6 +58,12 @@ public class Community extends AppCompatActivity implements NoticeAdapter.Listen
     private final List<CommunityNotice> all = new ArrayList<>();
     private String query = "";
     private String filter = "All";
+
+    private FusedLocationProviderClient fusedLocationClient;
+    private ActivityResultLauncher<String> locationPermissionLauncher;
+    private TextView tvLocation;
+    private String currentLocationName = null;
+    private boolean hasLocation = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,6 +109,20 @@ public class Community extends AppCompatActivity implements NoticeAdapter.Listen
         ((FloatingActionButton) findViewById(R.id.fab)).setOnClickListener(v -> showPostDialog());
 
         setupBottomNav();
+
+        tvLocation = findViewById(R.id.tv_location);
+        tvLocation.setOnClickListener(v -> requestLocation());
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        locationPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                granted -> {
+                    if (granted) {
+                        fetchLocation();
+                    } else {
+                        tvLocation.setText("Location off · tap to enable");
+                    }
+                });
+        requestLocation();
     }
 
     private void render() {
@@ -147,6 +180,68 @@ public class Community extends AppCompatActivity implements NoticeAdapter.Listen
         return "All";
     }
 
+    // ---------------- Location (GPS) ----------------
+
+    private void requestLocation() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            fetchLocation();
+        } else {
+            locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private void fetchLocation() {
+        tvLocation.setText("Locating…");
+        try {
+            fusedLocationClient.getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, null)
+                    .addOnSuccessListener(this, location -> {
+                        if (location == null) {
+                            tvLocation.setText("Location unavailable");
+                            return;
+                        }
+                        resolveAreaName(location.getLatitude(), location.getLongitude());
+                    })
+                    .addOnFailureListener(this, e -> tvLocation.setText("Location unavailable"));
+        } catch (SecurityException e) {
+            tvLocation.setText("Location off · tap to enable");
+        }
+    }
+
+    // Show the coordinates immediately, then try to turn them into an area name.
+    private void resolveAreaName(double lat, double lng) {
+        final String coords = String.format(Locale.getDefault(), "%.4f, %.4f", lat, lng);
+        hasLocation = true;
+        currentLocationName = coords;
+        tvLocation.setText(coords);
+
+        new Thread(() -> {
+            String area = coords;
+            try {
+                Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+                List<Address> result = geocoder.getFromLocation(lat, lng, 1);
+                if (result != null && !result.isEmpty()) {
+                    Address a = result.get(0);
+                    if (a.getSubLocality() != null) {
+                        area = a.getSubLocality();
+                    } else if (a.getLocality() != null) {
+                        area = a.getLocality();
+                    } else if (a.getAdminArea() != null) {
+                        area = a.getAdminArea();
+                    }
+                }
+            } catch (IOException | IllegalArgumentException ignored) {
+                // No geocoder result; keep the coordinates.
+            }
+            final String shown = area;
+            runOnUiThread(() -> {
+                currentLocationName = shown;
+                tvLocation.setText(shown);
+            });
+        }).start();
+    }
+
     // ---------------- Posting ----------------
 
     private void showPostDialog() {
@@ -176,9 +271,10 @@ public class Community extends AppCompatActivity implements NoticeAdapter.Listen
                 boolean important = swImportant.isChecked();
                 String tag = important ? "Alert" : tagFor(rgTag.getCheckedRadioButtonId());
 
+                String location = hasLocation ? currentLocationName : null;
                 CommunityNotice notice = new CommunityNotice(
                         title, body, tag, "You", false,
-                        System.currentTimeMillis(), null, 0, 0, 0,
+                        System.currentTimeMillis(), location, 0, 0, 0,
                         important, important);
                 repo.postNotice(notice);
                 dialog.dismiss();
