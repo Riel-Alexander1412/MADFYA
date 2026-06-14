@@ -61,7 +61,7 @@
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:contentDescription="Profile"
                         android:src="@drawable/ic_person"
-                        android:tint="#333333" />
+                        app:tint="#333333" />
 
                 </LinearLayout>
 
@@ -226,21 +226,12 @@
                 <!-- Announcements -->
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:layout_marginBottom="10dp" android:text="Announcement" android:textColor="#111111" android:textSize="18sp" android:textStyle="bold" />
 
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/card_announcement"
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_announcements"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardBackgroundColor="#FFF3F3"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="1dp">
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="16dp">
-                        <ImageView android:id="@+id/icon_announcement" android:layout_width="24dp" android:layout_height="24dp" android:layout_marginTop="2dp" android:src="@drawable/ic_warning" android:tint="#D32F2F" android:contentDescription="Warning" />
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:orientation="vertical">
-                            <TextView android:id="@+id/tv_announcement_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="No announcements" android:textColor="#D32F2F" android:textSize="15sp" android:textStyle="bold" />
-                            <TextView android:id="@+id/tv_announcement_body" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:textColor="#555555" android:textSize="13sp" android:lineSpacingMultiplier="1.3" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                    android:nestedScrollingEnabled="false" />
+
 
             </LinearLayout>
 
@@ -261,17 +252,16 @@
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/nav_view"
         android:layout_width="280dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:background="#FFFFFF"
-        android:orientation="vertical"
-        android:elevation="8dp">
+        android:elevation="8dp"
+        android:orientation="vertical">
 
         <!-- ── Header ── -->
+
         <LinearLayout
             android:id="@+id/drawer_header"
             android:layout_width="match_parent"
@@ -373,17 +363,17 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="#E0E0E0"
             android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp" />
+            android:layout_marginEnd="16dp"
+            android:background="#E0E0E0" />
 
         <!-- ── Bottom items pinned to the bottom ── -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="16dp"
-            android:paddingTop="8dp">
+            android:paddingTop="8dp"
+            android:paddingBottom="16dp">
 
             <!-- Profile -->
             <TextView

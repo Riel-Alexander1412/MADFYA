@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.androidx.room.runtime)
     implementation(libs.play.services.location)
+    implementation(libs.androidx.cardview)
     annotationProcessor(libs.room.compiler)
     implementation(libs.recyclerview)
     testImplementation(libs.junit)

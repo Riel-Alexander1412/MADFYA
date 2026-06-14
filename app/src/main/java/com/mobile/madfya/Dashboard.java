@@ -17,6 +17,9 @@ import com.mobile.madfya.data.AppDatabase;
 import com.mobile.madfya.data.Sensors;
 import com.mobile.madfya.ui.GaugeView;
 
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 public class Dashboard extends AppCompatActivity {
 
     private DrawerLayout    drawerLayout;
@@ -27,7 +30,8 @@ public class Dashboard extends AppCompatActivity {
     private TextView badgePh, badgeTurbidity, badgeTemperature, badgeFlow;
     private GaugeView gauge;
 
-    private TextView tvAnnouncementTitle, tvAnnouncementBody;
+    private RecyclerView rvAnnouncements;
+    private AnnouncementAdapter announcementAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,8 +75,13 @@ public class Dashboard extends AppCompatActivity {
         badgeTemperature    = findViewById(R.id.badge_temperature);
         badgeFlow           = findViewById(R.id.badge_flow);
         gauge               = findViewById(R.id.health_gauge);
-        tvAnnouncementTitle = findViewById(R.id.tv_announcement_title);
-        tvAnnouncementBody  = findViewById(R.id.tv_announcement_body);
+        rvAnnouncements = findViewById(R.id.rv_announcements);
+
+        announcementAdapter = new AnnouncementAdapter();
+        rvAnnouncements.setLayoutManager(
+                new LinearLayoutManager(this));
+
+        rvAnnouncements.setAdapter(announcementAdapter);
     }
 
     private void setupDrawer() {
@@ -198,14 +207,8 @@ public class Dashboard extends AppCompatActivity {
 
     private void observeAnnouncements() {
         AppDatabase.get(this).alertDao().getAll().observe(this, alerts -> {
-            if (alerts == null || alerts.isEmpty()) {
-                tvAnnouncementTitle.setText("No announcements");
-                tvAnnouncementBody.setText("");
-                return;
-            }
-            com.mobile.madfya.data.Alert a = alerts.get(0);
-            tvAnnouncementTitle.setText(a.title);
-            tvAnnouncementBody.setText(a.message != null ? a.message : "");
+            if (alerts == null) return;
+            announcementAdapter.setData(alerts);
         });
     }
 
