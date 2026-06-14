@@ -23,6 +23,7 @@ public class Login extends AppCompatActivity {
     public static final String ROLE_ADMIN       = "Admin";
     public static final String ROLE_MAINTENANCE = "Maintenance";
     public static final String ROLE_RESIDENT    = "Resident";
+    public static final String KEY_PROFILE_IMAGE = "profile_image";
 
     private TextInputLayout   tilUsername, tilPassword;
     private TextInputEditText etUsername,  etPassword;

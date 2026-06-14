@@ -1,6 +1,7 @@
 package com.mobile.madfya;
 
 public class SensorLog {
+    public int filterId;
     public String filterName;
     public String gpsCoords;
     public String date;
@@ -12,9 +13,10 @@ public class SensorLog {
     public double latitude;
     public double longitude;
 
-    public SensorLog(String filterName, String gpsCoords, String date, String time,
+    public SensorLog(int filterId, String filterName, String gpsCoords, String date, String time,
                      double ph, double turbidity, double temperature, double usage,
                      double latitude, double longitude) {
+        this.filterId = filterId; // add this
         this.filterName = filterName;
         this.gpsCoords = gpsCoords;
         this.date = date;

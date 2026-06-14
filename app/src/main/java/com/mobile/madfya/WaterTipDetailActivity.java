@@ -27,19 +27,23 @@ public class WaterTipDetailActivity extends AppCompatActivity {
         descriptionTextView = findViewById(R.id.detailDescriptionTextView);
         detailTipImageView = findViewById(R.id.detailTipImageView);
         watchVideoButton = findViewById(R.id.watchVideoButton);
+
         String title = getIntent().getStringExtra("tip_title");
         String description = getIntent().getStringExtra("tip_description");
         youtubeUrl = getIntent().getStringExtra("tip_youtube_url");
 
-        int imageResId = getIntent().getIntExtra("tip_image", R.drawable.ic_launcher_background);
+        // FIXED: Use ic_person or remove the default
+        int imageResId = getIntent().getIntExtra("tip_image", R.drawable.ic_person);
+
         titleTextView.setText(title);
         descriptionTextView.setText(description);
         detailTipImageView.setImageResource(imageResId);
 
         watchVideoButton.setOnClickListener(v -> {
-            Intent youtubeIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(youtubeUrl));
-            startActivity(youtubeIntent);
+            if (youtubeUrl != null && !youtubeUrl.isEmpty()) {
+                Intent youtubeIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(youtubeUrl));
+                startActivity(youtubeIntent);
+            }
         });
-
     }
 }

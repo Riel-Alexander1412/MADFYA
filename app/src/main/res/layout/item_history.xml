@@ -218,6 +218,7 @@
                 android:layout_height="28dp"
                 android:src="@drawable/ic_edit"
                 android:padding="5dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 app:tint="#005A9E"
                 android:contentDescription="Edit entry"/>
 
@@ -228,6 +229,7 @@
                 android:layout_marginTop="6dp"
                 android:src="@drawable/ic_delete"
                 android:padding="5dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 app:tint="#D32F2F"
                 android:contentDescription="Delete entry"/>
 

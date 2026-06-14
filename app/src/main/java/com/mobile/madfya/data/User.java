@@ -22,4 +22,8 @@ public class User {
         this.active    = active;
         this.createdAt = createdAt;
     }
+
+    public void setProfileImagePath(String profileImagePath) {
+        this.profileImagePath = profileImagePath;
+    }
 }

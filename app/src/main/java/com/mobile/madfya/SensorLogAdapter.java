@@ -41,6 +41,7 @@ public class SensorLogAdapter extends RecyclerView.Adapter<SensorLogAdapter.View
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         SensorLog log = logs.get(position);
 
+        holder.tvItemPh.setText(String.valueOf(log.ph));
         holder.tvItemTurbidity.setText(String.valueOf(log.turbidity));
         holder.tvItemTemp.setText(log.temperature + "°C");
         holder.tvItemUsage.setText(log.usage + "L");
@@ -50,11 +51,26 @@ public class SensorLogAdapter extends RecyclerView.Adapter<SensorLogAdapter.View
             intent.putExtra("position",    position);
             intent.putExtra("lat",         log.latitude);
             intent.putExtra("lng",         log.longitude);
-            intent.putExtra("filterName",  log.filterName);
+            intent.putExtra("filterId",    log.filterId); // use filterId
+            intent.putExtra("filterName",  log.filterName); // fix field name
             intent.putExtra("ph",          String.valueOf(log.ph));
             intent.putExtra("turbidity",   String.valueOf(log.turbidity));
             intent.putExtra("temperature", String.valueOf(log.temperature));
             intent.putExtra("usage",       String.valueOf(log.usage));
+            ((androidx.appcompat.app.AppCompatActivity) v.getContext())
+                    .startActivityForResult(intent, 100);
+        });
+        holder.mapThumbnail.setOnClickListener(v -> {
+            Intent intent = new Intent(v.getContext(), GpsFullscreen.class);
+            intent.putExtra("lat",         log.latitude);
+            intent.putExtra("lng",         log.longitude);
+            intent.putExtra("filter",      log.filterName); // fix field name
+            intent.putExtra("date",        log.date);
+            intent.putExtra("time",        log.time);
+            intent.putExtra("ph",          log.ph);
+            intent.putExtra("turbidity",   log.turbidity);
+            intent.putExtra("temperature", log.temperature);
+            intent.putExtra("usage",       log.usage);
             v.getContext().startActivity(intent);
         });
 
@@ -68,13 +84,13 @@ public class SensorLogAdapter extends RecyclerView.Adapter<SensorLogAdapter.View
         });
 
         String staticMapUrl = "https://maps.geoapify.com/v1/staticmap"
-                + "?style=osm-bright&width=500&height=500"
+                + "?style=osm-bright&width=600&height=600"
                 + "&center=lonlat%3A" + log.longitude + "%2C" + log.latitude
                 + "&zoom=15"
                 + "&apiKey=59d2db334aab4632929ede3ace4b0df8";
         android.util.Log.d("MAP_URL", staticMapUrl);
 
-        // Clean Glide v5 call structure
+        // Clean Glide v5 call structure (yes, v5. used v4 version which made me very angy)
         Glide.with(holder.itemView.getContext().getApplicationContext())
                 .load(staticMapUrl)
                 .placeholder(R.drawable.ic_map)
@@ -91,15 +107,6 @@ public class SensorLogAdapter extends RecyclerView.Adapter<SensorLogAdapter.View
                     }
                 })
                 .into(holder.mapThumbnail);
-        holder.mapThumbnail.setOnClickListener(v -> {
-            Intent intent = new Intent(v.getContext(), GpsFullscreen.class);
-            intent.putExtra("lat", log.latitude);
-            intent.putExtra("lng", log.longitude);
-            intent.putExtra("filter", log.filterName);
-            intent.putExtra("date", log.date);
-            intent.putExtra("time", log.time);
-            v.getContext().startActivity(intent);
-        });
     }
 
     @Override

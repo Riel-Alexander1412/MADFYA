@@ -135,15 +135,6 @@ public class Dashboard extends AppCompatActivity {
                 .show();
     }
 
-    @Override
-    public void onBackPressed() {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
-    }
-
     private void setWelcomeName() {
         String name = getSharedPreferences(Login.PREFS_NAME, MODE_PRIVATE)
                 .getString(Login.KEY_NAME, "User");
@@ -155,30 +146,54 @@ public class Dashboard extends AppCompatActivity {
             if (sensors == null || sensors.isEmpty()){
                 Log.e("Dashboard", "Sensors List not found");
                 return;
-            };
+            }
 
+            // Find the main filter (filterId == 1)
             Sensors latest = null;
-            for (int i = sensors.size() - 1; i >= 0; i--) {
-                if (sensors.get(i).filterId == 1) {
-                    latest = sensors.get(i);
+            for (Sensors sensor : sensors) {
+                if (sensor.filterId == 1) {
+                    latest = sensor;
                     break;
                 }
             }
+
             if (latest == null){
-                Log.e("Dashboard", "No sensors found");
+                Log.e("Dashboard", "No main filter sensor found");
                 return;
-            };
+            }
 
             tvPhValue.setText(latest.ph_level != null ? latest.ph_level : "–");
             tvTurbidityValue.setText(latest.turbidity != null ? latest.turbidity : "–");
             tvTemperatureValue.setText(latest.temperature != null ? latest.temperature : "–");
             tvFlowValue.setText(latest.water_flow_rate != null ? latest.water_flow_rate : "–");
 
-            int hp = latest.HP;
-            tvHpValue.setText(hp + "%");
-            gauge.setPercent(hp);
-            updateHealthCard(hp);
+            // Calculate health score
+            int score = 0;
+            try {
+                double ph = Double.parseDouble(latest.ph_level);
+                if (ph >= 6.5 && ph <= 8.5) score += 25;
+            } catch (Exception ignored) {}
 
+            try {
+                double turb = Double.parseDouble(latest.turbidity);
+                if (turb <= 4) score += 25;
+            } catch (Exception ignored) {}
+
+            try {
+                double temp = Double.parseDouble(latest.temperature);
+                if (temp >= 20 && temp <= 30) score += 25;
+            } catch (Exception ignored) {}
+
+            try {
+                double flow = Double.parseDouble(latest.water_flow_rate);
+                if (flow >= 50) score += 25;
+            } catch (Exception ignored) {}
+
+            tvHpValue.setText(score + "%");
+            gauge.setPercent(score);
+            updateHealthCard(score);
+
+            // Update badges based on actual values
             try {
                 double ph = Double.parseDouble(latest.ph_level);
                 updateBadge(badgePh, (ph < 6.5 || ph > 8.5) ? "WARNING" : "OPERATIONAL");
@@ -221,17 +236,17 @@ public class Dashboard extends AppCompatActivity {
         }
     }
 
-    private void updateHealthCard(int hp) {
-        if (hp >= 80) {
-            tvHealthSubtitle.setText("System is currently healthy. Replacement is unnecessary.");
-        } else if (hp >= 50) {
+    private void updateHealthCard(int score) {
+        if (score >= 75) {
+            tvHealthSubtitle.setText("System is currently healthy.");
+        } else if (score >= 50) {
             tvHealthSubtitle.setText("System is operating normally. Schedule maintenance soon.");
         } else {
             tvHealthSubtitle.setText("System health is low. Maintenance is recommended.");
         }
     }
 
-    // ── Announcements: observe alerts from Firebase ───────────────────────────
+    // Announcements: observe alerts from Firebase
     private void observeAnnouncements() {
         repo.getAllAlerts().observe(this, alerts -> {
             if (alerts == null) return;
@@ -245,8 +260,14 @@ public class Dashboard extends AppCompatActivity {
         nav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.menu_dashboard) return true;
-            if (id == R.id.menu_community) { startActivity(new Intent(this, Community.class)); return true; }
-            if (id == R.id.menu_status)    { startActivity(new Intent(this, Status.class));    return true; }
+            if (id == R.id.menu_community) {
+                startActivity(new Intent(this, Community.class));
+                return true;
+            }
+            if (id == R.id.menu_status) {
+                startActivity(new Intent(this, Status.class));
+                return true;
+            }
             return false;
         });
     }

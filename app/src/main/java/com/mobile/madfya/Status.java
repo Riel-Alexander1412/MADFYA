@@ -6,6 +6,9 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.data.Entry;
@@ -31,19 +34,25 @@ public class Status extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         binding = ActivityStatusBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        ViewCompat.setOnApplyWindowInsetsListener(binding.statusToolbar, (v, insets) -> {
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+            return insets;
+        });
 
         repo = FirebaseRepository.get();
 
-        if (binding.statusToolbar != null) {
-            binding.statusToolbar.setNavigationOnClickListener(v -> onBackPressed());
-        }
+        binding.btnBack.setOnClickListener(v -> {
+            finish(); // Or navigate to previous activity
+        });
 
-        binding.btnViewHistory.setOnClickListener(v ->
-                startActivity(new Intent(this, History.class)));
+        binding.btnViewHistory.setOnClickListener(v -> {
+            startActivity(new Intent(this, History.class));
+        });
 
-        // ── Load graphs and status from Firebase ──────────────────────────────
         loadFirebaseGraphs();
 
         setupBottomNav();
@@ -158,22 +167,35 @@ public class Status extends AppCompatActivity {
     }
 
     private void setupBottomNav() {
-        if (binding.bottomNav == null) return;
-        binding.bottomNav.setSelectedItemId(R.id.menu_alerts_status);
-        binding.bottomNav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.menu_alerts_status) return true;
-            if (id == R.id.menu_dashboard)     { startActivity(new Intent(this, Dashboard.class)); return true; }
-            if (id == R.id.menu_community)     { startActivity(new Intent(this, Community.class)); return true; }
-            return false;
-        });
+        if (binding.bottomNav != null) {
+            // Set current selected item to Status
+            binding.bottomNav.setSelectedItemId(R.id.menu_status);
+
+            binding.bottomNav.setOnItemSelectedListener(item -> {
+                int id = item.getItemId();
+                if (id == R.id.menu_status) {
+                    return true;  // Already on Status
+                }
+                if (id == R.id.menu_dashboard) {
+                    startActivity(new Intent(this, Dashboard.class));
+                    finish(); // Optional: close Status when navigating
+                    return true;
+                }
+                if (id == R.id.menu_community) {
+                    startActivity(new Intent(this, Community.class));
+                    finish(); // Optional: close Status when navigating
+                    return true;
+                }
+                return false;
+            });
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         if (binding.bottomNav != null) {
-            binding.bottomNav.setSelectedItemId(R.id.menu_alerts_status);
+            binding.bottomNav.setSelectedItemId(R.id.menu_status);
         }
     }
 

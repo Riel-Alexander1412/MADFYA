@@ -7,7 +7,7 @@ public class SensorUtil {
             case 2: return "Sub Filter A";
             case 3: return "Sub Filter B";
             case 4: return "Sub Filter C";
-            default: return "Sensor #" + filterId;
+            default: return "Unknown";
         }
     }
 }

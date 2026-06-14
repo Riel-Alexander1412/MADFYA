@@ -3,6 +3,7 @@ package com.mobile.madfya;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.widget.AutoCompleteTextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -25,6 +26,7 @@ import com.google.android.material.textfield.TextInputEditText;
 public class EditLog extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final int LOCATION_PERMISSION_REQUEST = 1001;
+    private static final String[] FILTERS = {"Main Filter", "Sub Filter A", "Sub Filter B", "Sub Filter C"};
 
     private GoogleMap googleMap;
     private Marker currentMarker;
@@ -33,25 +35,33 @@ public class EditLog extends AppCompatActivity implements OnMapReadyCallback {
     private double latitude, longitude;
     private int logPosition;
 
-    private TextInputEditText etFilterName, etPh, etTurbidity, etTemperature, etUsage;
+    private AutoCompleteTextView etFilterName;
+    private TextInputEditText etPh, etTurbidity, etTemperature, etUsage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_log);
+
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(
+                findViewById(R.id.toolbarEditLog), (v, insets) -> {
+                    androidx.core.graphics.Insets bars = insets.getInsets(
+                            androidx.core.view.WindowInsetsCompat.Type.systemBars());
+                    v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+                    return insets;
+                });
+
         latitude    = getIntent().getDoubleExtra("lat", 0);
         longitude   = getIntent().getDoubleExtra("lng", 0);
         logPosition = getIntent().getIntExtra("position", -1);
+        int filterId = getIntent().getIntExtra("filterId", 1);
 
-        String filterName   = getIntent().getStringExtra("filterName");
-        String ph           = getIntent().getStringExtra("ph");
-        String turbidity    = getIntent().getStringExtra("turbidity");
-        String temperature  = getIntent().getStringExtra("temperature");
-        String usage        = getIntent().getStringExtra("usage");
+        String ph          = getIntent().getStringExtra("ph");
+        String turbidity   = getIntent().getStringExtra("turbidity");
+        String temperature = getIntent().getStringExtra("temperature");
+        String usage       = getIntent().getStringExtra("usage");
 
-        Toolbar toolbar = findViewById(R.id.toolbarEditLog);
-        setSupportActionBar(toolbar);
-        toolbar.setNavigationOnClickListener(v -> finish());
+        findViewById(R.id.btn_back).setOnClickListener(v -> finish());
 
         etFilterName  = findViewById(R.id.etFilterName);
         etPh          = findViewById(R.id.etPh);
@@ -59,7 +69,12 @@ public class EditLog extends AppCompatActivity implements OnMapReadyCallback {
         etTemperature = findViewById(R.id.etTemperature);
         etUsage       = findViewById(R.id.etUsage);
 
-        etFilterName.setText(filterName);
+        // setup dropdown
+        android.widget.ArrayAdapter<String> filterAdapter = new android.widget.ArrayAdapter<>(
+                this, android.R.layout.simple_dropdown_item_1line, FILTERS);
+        etFilterName.setAdapter(filterAdapter);
+        etFilterName.setText(FILTERS[filterId - 1], false);
+
         etPh.setText(ph);
         etTurbidity.setText(turbidity);
         etTemperature.setText(temperature);
@@ -71,11 +86,8 @@ public class EditLog extends AppCompatActivity implements OnMapReadyCallback {
                 getSupportFragmentManager().findFragmentById(R.id.mapEditLog);
         if (mapFragment != null) mapFragment.getMapAsync(this);
 
-        MaterialButton btnCurrentLocation = findViewById(R.id.btnCurrentLocation);
-        btnCurrentLocation.setOnClickListener(v -> fetchCurrentLocation());
-
-        MaterialButton btnSave = findViewById(R.id.btnSaveLog);
-        btnSave.setOnClickListener(v -> saveLog());
+        findViewById(R.id.btnCurrentLocation).setOnClickListener(v -> fetchCurrentLocation());
+        findViewById(R.id.btnSaveLog).setOnClickListener(v -> saveLog());
     }
 
     @Override
@@ -99,7 +111,8 @@ public class EditLog extends AppCompatActivity implements OnMapReadyCallback {
             latitude  = latLng.latitude;
             longitude = latLng.longitude;
             if (currentMarker != null) currentMarker.setPosition(latLng);
-            else currentMarker = googleMap.addMarker(new MarkerOptions().position(latLng).draggable(true));
+            else currentMarker = googleMap.addMarker(
+                    new MarkerOptions().position(latLng).draggable(true));
         });
     }
 
@@ -136,21 +149,23 @@ public class EditLog extends AppCompatActivity implements OnMapReadyCallback {
     }
 
     private void saveLog() {
-        String filterName  = etFilterName.getText() != null ? etFilterName.getText().toString().trim() : "";
-        String phStr       = etPh.getText() != null ? etPh.getText().toString().trim() : "0";
-        String turbStr     = etTurbidity.getText() != null ? etTurbidity.getText().toString().trim() : "0";
-        String tempStr     = etTemperature.getText() != null ? etTemperature.getText().toString().trim() : "0";
-        String usageStr    = etUsage.getText() != null ? etUsage.getText().toString().trim() : "0";
+        String selectedFilter = etFilterName.getText() != null ? etFilterName.getText().toString().trim() : "";
+        String phStr          = etPh.getText() != null ? etPh.getText().toString().trim() : "0";
+        String turbStr        = etTurbidity.getText() != null ? etTurbidity.getText().toString().trim() : "0";
+        String tempStr        = etTemperature.getText() != null ? etTemperature.getText().toString().trim() : "0";
+        String usageStr       = etUsage.getText() != null ? etUsage.getText().toString().trim() : "0";
 
-        if (filterName.isEmpty()) {
-            etFilterName.setError("Filter name required");
+        if (selectedFilter.isEmpty()) {
+            etFilterName.setError("Please select a filter");
             return;
         }
 
-        // TODO: Update Room database entry at logPosition with new values
+        int selectedFilterId = java.util.Arrays.asList(FILTERS).indexOf(selectedFilter) + 1;
+
         android.content.Intent result = new android.content.Intent();
         result.putExtra("position",    logPosition);
-        result.putExtra("filterName",  filterName);
+        result.putExtra("filterId",    selectedFilterId);
+        result.putExtra("filterName",  selectedFilter);
         result.putExtra("ph",          Double.parseDouble(phStr));
         result.putExtra("turbidity",   Double.parseDouble(turbStr));
         result.putExtra("temperature", Double.parseDouble(tempStr));

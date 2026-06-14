@@ -36,7 +36,6 @@ public class WaterTipPagerAdapter extends RecyclerView.Adapter<WaterTipPagerAdap
         WaterTipModel tip = tipList.get(position);
         holder.titleTextView.setText(tip.getTitle());
 
-        // FIXED: Dynamically load the image from your model object instead of the default placeholder
         holder.imageView.setImageResource(tip.getImageResource());
 
         holder.learnMoreButton.setOnClickListener(v -> {

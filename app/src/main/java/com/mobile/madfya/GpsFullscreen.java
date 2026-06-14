@@ -4,6 +4,10 @@ import android.os.Bundle;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -20,7 +24,11 @@ public class GpsFullscreen extends AppCompatActivity implements OnMapReadyCallba
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gps_fullscreen);
-
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.toolbarGps), (v, insets) -> {
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+            return insets;
+        });
         // Get extras
         latitude   = getIntent().getDoubleExtra("lat", 0);
         longitude  = getIntent().getDoubleExtra("lng", 0);
@@ -28,14 +36,21 @@ public class GpsFullscreen extends AppCompatActivity implements OnMapReadyCallba
         date       = getIntent().getStringExtra("date");
         time       = getIntent().getStringExtra("time");
 
-        Toolbar toolbar = findViewById(R.id.toolbarGps);
-        setSupportActionBar(toolbar);
-        toolbar.setNavigationOnClickListener(v -> finish());
+        findViewById(R.id.btn_back).setOnClickListener(v -> finish());
+
 
         ((TextView) findViewById(R.id.tvFullFilter)).setText("Filter: " + filterName);
         ((TextView) findViewById(R.id.tvFullCoords)).setText("GPS: " + latitude + ", " + longitude);
         ((TextView) findViewById(R.id.tvFullDate)).setText("Date: " + date);
         ((TextView) findViewById(R.id.tvFullTime)).setText("Time: " + time);
+        ((TextView) findViewById(R.id.tvFullPh)).setText(
+                String.valueOf(getIntent().getDoubleExtra("ph", 0)));
+        ((TextView) findViewById(R.id.tvFullTurbidity)).setText(
+                String.valueOf(getIntent().getDoubleExtra("turbidity", 0)));
+        ((TextView) findViewById(R.id.tvFullTemp)).setText(
+                getIntent().getDoubleExtra("temperature", 0) + "°C");
+        ((TextView) findViewById(R.id.tvFullUsage)).setText(
+                getIntent().getDoubleExtra("usage", 0) + " L");
         SupportMapFragment mapFragment = (SupportMapFragment)
                 getSupportFragmentManager().findFragmentById(R.id.mapFullscreen);
         if (mapFragment != null) {

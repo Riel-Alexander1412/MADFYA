@@ -16,7 +16,6 @@ import com.mobile.madfya.data.User;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Renders the user cards on the Admin page and forwards edit/delete taps. */
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.VH> {
 
     public interface Listener {

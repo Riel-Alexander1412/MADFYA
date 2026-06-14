@@ -52,18 +52,18 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.play.services.location)
     implementation(libs.androidx.cardview)
-    implementation(libs.firebase.database)
-    implementation(libs.firebase.storage)
     annotationProcessor(libs.room.compiler)
     implementation(libs.recyclerview)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.ext.junit)
-    androidTestImplementation(libs.espresso.core)
     implementation(libs.play.services.maps)
     implementation(libs.mpandroidchart)
     implementation(libs.glide)
 
-    implementation(platform("com.google.firebase:firebase-bom:34.14.1"))
-    implementation(platform("com.google.firebase:firebase-database"))
-    implementation(platform("com.google.firebase:firebase-storage"))
+    // Firebase - BOM manages versions, just list the libraries without versions
+    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
+    implementation("com.google.firebase:firebase-database")
+    implementation("com.google.firebase:firebase-storage")
+
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.ext.junit)
+    androidTestImplementation(libs.espresso.core)
 }

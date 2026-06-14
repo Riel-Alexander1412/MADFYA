@@ -35,6 +35,8 @@
         <activity
             android:name=".ViewReport"
             android:exported="false" />
+        <activity android:name=".ReportDetail"
+            android:exported="false" />
         <activity
             android:name=".Status"
             android:exported="false" />
@@ -60,7 +62,10 @@
         </activity>
         <activity android:name=".GpsFullscreen"
             android:exported="false"/>
-        <activity android:name=".EditLog" android:exported="false"/>
+        <activity android:name=".EditLog"
+            android:exported="false" />
+        <activity android:name=".WaterTipDetailActivity"
+            android:exported="false"/>
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyCKpVcdRNBIeAuFwjGCP7GACtP_VWsvWqU" />

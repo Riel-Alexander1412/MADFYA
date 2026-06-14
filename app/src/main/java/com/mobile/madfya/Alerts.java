@@ -30,7 +30,9 @@ import com.mobile.madfya.data.FirebaseRepository;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Alerts & Notifications Center — filterable by category, powered by Firebase. */
+/**
+ * Alerts &amp; Notifications Center — the activity feed, filterable by category.
+ */
 public class Alerts extends AppCompatActivity {
 
     private FirebaseRepository repo;
@@ -64,7 +66,6 @@ public class Alerts extends AppCompatActivity {
             render();
         });
 
-        // ── Category chips ────────────────────────────────────────────────────
         ChipGroup chipGroup = findViewById(R.id.chip_group);
         chipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
             category = categoryFor(checkedIds.isEmpty() ? R.id.chip_all : checkedIds.get(0));
@@ -73,13 +74,7 @@ public class Alerts extends AppCompatActivity {
 
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
         ((FloatingActionButton) findViewById(R.id.fab)).setOnClickListener(v -> showAddAlertDialog());
-
-        setupBottomNav();
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Filter + render
-    // ─────────────────────────────────────────────────────────────────────────
 
     private void render() {
         if ("All".equals(category)) {
@@ -99,10 +94,6 @@ public class Alerts extends AppCompatActivity {
         if (chipId == R.id.chip_community) return "Community";
         return "All";
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Add alert dialog
-    // ─────────────────────────────────────────────────────────────────────────
 
     private void showAddAlertDialog() {
         View form = LayoutInflater.from(this).inflate(R.layout.dialog_alert_form, null, false);
@@ -146,7 +137,6 @@ public class Alerts extends AppCompatActivity {
                 dialog.dismiss();
             });
         });
-
         dialog.show();
     }
 
@@ -164,27 +154,5 @@ public class Alerts extends AppCompatActivity {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Bottom navigation
-    // ─────────────────────────────────────────────────────────────────────────
 
-    private void setupBottomNav() {
-        BottomNavigationView nav = findViewById(R.id.bottom_nav);
-        nav.setSelectedItemId(R.id.menu_alerts_alerts);
-        nav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.menu_alerts_alerts)  return true;
-            if (id == R.id.menu_alerts_status)  { startActivity(new Intent(this, Status.class));      return true; }
-            if (id == R.id.menu_alerts_profile) { startActivity(new Intent(this, UserProfile.class)); return true; }
-            if (id == R.id.menu_alerts_map)     { Toast.makeText(this, "Map coming soon", Toast.LENGTH_SHORT).show(); return true; }
-            return false;
-        });
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        BottomNavigationView nav = findViewById(R.id.bottom_nav);
-        if (nav != null) nav.setSelectedItemId(R.id.menu_alerts_alerts);
-    }
 }

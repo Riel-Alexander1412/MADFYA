@@ -1,12 +1,12 @@
 package com.mobile.madfya;
 
 import android.Manifest;
-import android.content.Intent;
+import android.content.ContentValues;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
@@ -27,48 +27,53 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.graphics.Insets;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.mobile.madfya.data.FirebaseRepository;
 import com.mobile.madfya.data.User;
-
-import java.io.ByteArrayOutputStream;
 
 public class UserProfile extends AppCompatActivity {
 
     private ImageView profileImageView;
     private TextView userNameTextView;
     private EditText userNameEditText;
-    private ImageView editNameIcon;
+    private ImageView editNameIcon, userProfileview;
     private LinearLayout buttonRow;
     private Button saveNameButton;
     private Button cancelNameButton;
     private Button logoutButton;
     private TextView editProfilePictureText;
 
-    private Bitmap capturedPhotoBitmap;
+    private String   savedImagePath = null;
+    private Uri      cameraImageUri = null;
+
+    private Uri selectedImageUri = null;
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 100;
 
     private FirebaseRepository repo;
     private StorageReference storageRef;
     private User currentUser;
 
-    private final ActivityResultLauncher<Intent> cameraLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    Bundle extras = result.getData().getExtras();
-                    capturedPhotoBitmap = (Bitmap) extras.get("data");
-
-                    if (currentUser != null && capturedPhotoBitmap != null) {
-                        profileImageView.setImageBitmap(capturedPhotoBitmap);
-                        uploadProfileImageToFirebase(capturedPhotoBitmap);
-                    }
-                } else {
-                    Toast.makeText(this, "Camera Cancelled", Toast.LENGTH_SHORT).show();
+    private final ActivityResultLauncher<String> galleryLauncher =
+            registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
+                if (uri != null) {
+                    selectedImageUri = uri;
+                    profileImageView.setImageURI(selectedImageUri);
+                    uploadProfileImageToFirebase(selectedImageUri);
                 }
-            }
-    );
+            });
+
+    private final ActivityResultLauncher<Uri> cameraLauncher =
+            registerForActivityResult(new ActivityResultContracts.TakePicture(), success -> {
+                if (Boolean.TRUE.equals(success) && selectedImageUri != null) {
+                    handleImageUri(selectedImageUri);
+                    profileImageView.setImageURI(selectedImageUri);
+                    uploadProfileImageToFirebase(selectedImageUri);
+                } else {
+                    Toast.makeText(this, "Camera cancelled", Toast.LENGTH_SHORT).show();
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,14 +103,13 @@ public class UserProfile extends AppCompatActivity {
         loadUserData();
 
         backArrow.setOnClickListener(v -> finish());
-        editProfilePictureText.setOnClickListener(v -> checkCameraPermission());
+        editProfilePictureText.setOnClickListener(v -> showImageSourceDialog());
+        profileImageView.setOnClickListener(v -> showImageSourceDialog());
         editNameIcon.setOnClickListener(v -> enterEditMode());
         cancelNameButton.setOnClickListener(v -> cancelEdit());
         saveNameButton.setOnClickListener(v -> saveName());
         logoutButton.setOnClickListener(v -> logout());
     }
-
-    // ── Load user from Firebase using the saved Firebase key ─────────────────
 
     private void loadUserData() {
         SharedPreferences prefs = getSharedPreferences(Login.PREFS_NAME, MODE_PRIVATE);
@@ -147,40 +151,58 @@ public class UserProfile extends AppCompatActivity {
         });
     }
 
-    // ── Upload profile image to Firebase Storage, then save URL to RTDB ──────
+    private void showImageSourceDialog() {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Profile Picture")
+                .setItems(new String[]{"Take a photo", "Choose from gallery"}, (dialog, which) -> {
+                    if (which == 0) checkCameraAndLaunch();
+                    else galleryLauncher.launch("image/*");
+                })
+                .show();
+    }
 
-    private void uploadProfileImageToFirebase(Bitmap bitmap) {
+    private void checkCameraAndLaunch() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CAMERA},
+                    CAMERA_PERMISSION_REQUEST_CODE);
+        } else {
+            launchCamera();
+        }
+    }
+
+    private void launchCamera() {
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.DISPLAY_NAME,
+                "profile_" + System.currentTimeMillis() + ".jpg");
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+        values.put(MediaStore.Images.Media.RELATIVE_PATH,
+                Environment.DIRECTORY_PICTURES + "/MADFYA");
+
+        selectedImageUri = getContentResolver().insert(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        if (selectedImageUri != null) cameraLauncher.launch(selectedImageUri);
+    }
+
+    private void handleImageUri(Uri uri) {
+        savedImagePath = uri.toString();
+    }
+
+    private void clearImage() {
+        savedImagePath = null;
+        cameraImageUri = null;
+    }
+    private void uploadProfileImageToFirebase(Uri imageUri) {
         if (currentUser == null) return;
 
         Toast.makeText(this, "Uploading...", Toast.LENGTH_SHORT).show();
 
-        // Convert bitmap to bytes
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
-        byte[] imageData = baos.toByteArray();
+        StorageReference fileRef = storageRef.child(currentUser.firebaseKey + ".jpg");
 
-        // Store under profile_images/{firebaseKey}.png
-        StorageReference fileRef = storageRef.child(currentUser.firebaseKey + ".png");
-
-        fileRef.putBytes(imageData)
-                .addOnSuccessListener(taskSnapshot ->
-                        // Get the public download URL
-                        fileRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                            String downloadUrl = uri.toString();
-
-                            // Save URL into the user's profileImagePath field in RTDB
-                            currentUser.profileImagePath = downloadUrl;
-                            repo.updateUser(currentUser.firebaseKey, currentUser);
-
-                            Toast.makeText(this, "Profile picture saved!", Toast.LENGTH_SHORT).show();
-                        })
-                )
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-                );
+        currentUser.setProfileImagePath(savedImagePath);
+        FirebaseRepository.get().updateUser(currentUser.id, currentUser);
     }
-
-    // ── Save updated name to Firebase + SharedPreferences ────────────────────
 
     private void saveName() {
         String newName = userNameEditText.getText().toString().trim();
@@ -209,25 +231,16 @@ public class UserProfile extends AppCompatActivity {
         Toast.makeText(this, "Name updated successfully!", Toast.LENGTH_SHORT).show();
     }
 
-    // ── Camera permission ─────────────────────────────────────────────────────
-
-    private void checkCameraPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.CAMERA},
-                    CAMERA_PERMISSION_REQUEST_CODE);
-        } else {
-            openCamera();
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                           int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE
+                && grantResults.length > 0
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            launchCamera();
         }
     }
-
-    private void openCamera() {
-        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        cameraLauncher.launch(cameraIntent);
-    }
-
-    // ── Edit mode helpers ─────────────────────────────────────────────────────
 
     private void enterEditMode() {
         userNameEditText.setText(userNameTextView.getText().toString());
@@ -252,7 +265,8 @@ public class UserProfile extends AppCompatActivity {
     }
 
     private void loadDummyData() {
-        userNameTextView.setText("John Ben");
+        String dummyName = "John Ben";
+        userNameTextView.setText(dummyName);
         Toast.makeText(this, "Dummy data loaded", Toast.LENGTH_SHORT).show();
     }
 }
