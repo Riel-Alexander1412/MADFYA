@@ -20,12 +20,15 @@ public class User {
     public long createdAt;
     public String password;
 
+    public String profileImagePath;
+
     public User(String name, String role, boolean active, long createdAt) {
         this.name = name;
         this.role = role;
         this.active = active;
         this.createdAt = createdAt;
         this.password = "123456";
+        this.profileImagePath = null;
     }
 
     @Ignore
@@ -35,5 +38,6 @@ public class User {
         this.active = active;
         this.createdAt = createdAt;
         this.password = password;
+        this.profileImagePath = null;
     }
 }

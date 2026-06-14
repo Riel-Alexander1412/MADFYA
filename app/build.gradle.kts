@@ -4,16 +4,12 @@ plugins {
 
 android {
     namespace = "com.mobile.madfya"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 35 // Cleaned up to match standard SDK compile target
 
     defaultConfig {
         applicationId = "com.mobile.madfya"
         minSdk = 28
-        targetSdk = 36
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -39,24 +35,35 @@ android {
 }
 
 dependencies {
+    // Core AndroidX and UI Libraries
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.androidx.cardview)
+    implementation(libs.recyclerview)
+
+    // Navigation Components
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
+
+    // Architecture Lifecycles & Persistence
     implementation(libs.annotation)
     implementation(libs.lifecycle.livedata.ktx)
     implementation(libs.lifecycle.viewmodel.ktx)
     implementation(libs.room.runtime)
-    implementation(libs.play.services.location)
-    implementation(libs.androidx.cardview)
     annotationProcessor(libs.room.compiler)
-    implementation(libs.recyclerview)
+
+    // Google Location Services & Maps API
+    implementation(libs.play.services.location)
+    implementation(libs.play.services.maps)
+
+    // Third Party UI Assets & Plugins
+    implementation(libs.mpandroidchart)
+    implementation(libs.glide)
+    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+    // Quality Control Testing Packages
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-    implementation(libs.play.services.maps)
-    implementation(libs.mpandroidchart)
-    implementation(libs.glide)
 }
