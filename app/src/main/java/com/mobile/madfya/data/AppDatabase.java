@@ -29,10 +29,13 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract CommunityNoticeDao noticeDao();
 
     public abstract CommentDao commentDao();
+    public abstract SensorsDao sensorsDao();
+    public abstract ReportDao reportDao();
 
     private static volatile AppDatabase instance;
 
     /** Shared pool for all database writes. */
+    public static final ExecutorService dbExecutor = Executors.newFixedThreadPool(6);
 
     public static AppDatabase get(Context context) {
         if (instance == null) {
