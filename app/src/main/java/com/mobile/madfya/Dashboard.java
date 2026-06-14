@@ -2,6 +2,7 @@ package com.mobile.madfya;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,10 +16,13 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.mobile.madfya.data.AppDatabase;
 import com.mobile.madfya.data.Sensors;
+import com.mobile.madfya.data.User;
 import com.mobile.madfya.ui.GaugeView;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.List;
 
 public class Dashboard extends AppCompatActivity {
 
@@ -59,6 +63,21 @@ public class Dashboard extends AppCompatActivity {
 
         findViewById(R.id.btn_profile).setOnClickListener(v ->
                 startActivity(new Intent(this, UserProfile.class)));
+
+        AppDatabase.dbExecutor.execute(() -> {
+            List<User> users = AppDatabase.get(this).userDao().getAllSync();
+            if (users.isEmpty()) {
+                Log.d("DEBUG_USERS", "No users in database!");
+            } else {
+                for (User u : users) {
+                    Log.d("DEBUG_USERS", "ID: " + u.id
+                            + " | Name: " + u.name
+                            + " | Password: " + u.password
+                            + " | Role: " + u.role
+                            + " | Active: " + u.active);
+                }
+            }
+        });
     }
 
     private void bindViews() {
