@@ -20,7 +20,7 @@
             android:layout_height="24dp"
             android:layout_marginTop="2dp"
             android:src="@drawable/ic_warning"
-            android:tint="#D32F2F"/>
+            app:tint="#D32F2F" />
 
         <LinearLayout
             android:layout_width="0dp"

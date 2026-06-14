@@ -4,7 +4,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.CAMERA"
+        tools:ignore="PermissionImpliesUnsupportedChromeOsHardware" />
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -31,7 +32,7 @@
             android:exported="false" />
         <activity
             android:name=".CreateReport"
-            android:exported="true" />
+            android:exported="false" />
         <activity
             android:name=".ViewReport"
             android:exported="false" />
@@ -60,12 +61,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".GpsFullscreen"
+        <activity
+            android:name=".GpsFullscreen"
             android:exported="false"/>
-        <activity android:name=".EditLog"
+        <activity
+            android:name=".EditLog"
             android:exported="false" />
-        <activity android:name=".WaterTipDetailActivity"
-            android:exported="false"/>
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyCKpVcdRNBIeAuFwjGCP7GACtP_VWsvWqU" />

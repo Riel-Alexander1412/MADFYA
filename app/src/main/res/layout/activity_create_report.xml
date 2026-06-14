@@ -28,7 +28,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Back"
                 android:src="@drawable/ic_arrow_back"
-                android:tint="#1A5C8F" />
+                app:tint="#1A5C8F" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -330,7 +330,7 @@
                     android:background="@drawable/bg_badge_normal"
                     android:contentDescription="Remove image"
                     android:src="@drawable/ic_close"
-                    android:tint="#D32F2F" />
+                    app:tint="#D32F2F" />
 
             </androidx.cardview.widget.CardView>
 

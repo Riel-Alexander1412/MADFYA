@@ -53,7 +53,6 @@ public class AdminMain extends AppCompatActivity implements UserAdapter.Listener
             return insets;
         });
 
-        // ── Firebase replaces MadfyaRepository ───────────────────────────────
         repo = FirebaseRepository.get();
 
         RecyclerView recycler = findViewById(R.id.recycler);
@@ -61,14 +60,12 @@ public class AdminMain extends AppCompatActivity implements UserAdapter.Listener
         adapter = new UserAdapter(this);
         recycler.setAdapter(adapter);
 
-        // ── Observe users from Firebase in real-time ──────────────────────────
         repo.getAllUsers().observe(this, users -> {
             all.clear();
             all.addAll(users);
             render();
         });
 
-        // ── Search bar ────────────────────────────────────────────────────────
         EditText search = findViewById(R.id.et_search);
         search.addTextChangedListener(new SimpleWatcher() {
             @Override
@@ -159,13 +156,11 @@ public class AdminMain extends AppCompatActivity implements UserAdapter.Listener
                         ? "" : etPassword.getText().toString().trim();
 
                 if (existing == null) {
-                    // ── INSERT new user into Firebase ─────────────────────────
                     User newUser = new User(name, role, active, System.currentTimeMillis());
                     newUser.password = password.isEmpty() ? "123456" : password;
                     repo.insertUser(newUser);
 
                 } else {
-                    // ── UPDATE existing user in Firebase ──────────────────────
                     existing.name   = name;
                     existing.role   = role;
                     existing.active = active;
@@ -201,7 +196,6 @@ public class AdminMain extends AppCompatActivity implements UserAdapter.Listener
                 .setTitle("Remove user")
                 .setMessage("Remove " + user.name + " from the network?")
                 .setPositiveButton(R.string.action_delete, (d, w) -> {
-                    // ── DELETE from Firebase using the push key ────────────────
                     repo.deleteUser(user.firebaseKey);
                 })
                 .setNegativeButton(R.string.action_cancel, null)

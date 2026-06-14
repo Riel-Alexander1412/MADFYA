@@ -2,12 +2,10 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white">
 
-    <!-- Background water image (bottom portion) -->
     <ImageView
         android:id="@+id/backgroundImage"
         android:layout_width="match_parent"
@@ -20,9 +18,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/guidelineMiddle" />
 
-    <!-- Teal gradient overlay on the image -->
-
-    <!-- Guideline at 50% to anchor background image start -->
 
     <View
         android:id="@+id/gradientOverlay"
@@ -63,7 +58,7 @@
             android:layout_height="24dp"
             android:src="@drawable/ic_water_drop"
             android:contentDescription="SCP Logo"
-            android:tint="#1A5C8F" />
+            app:tint="#1A5C8F" />
 
         <TextView
             android:id="@+id/tvAppTitle"

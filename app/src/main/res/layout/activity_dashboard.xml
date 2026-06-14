@@ -35,7 +35,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="Menu"
                     android:src="@drawable/ic_menu"
-                    android:tint="#333333" />
+                    app:tint="#333333" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -51,7 +51,7 @@
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:contentDescription="Notifications"
                         android:src="@drawable/ic_notifications"
-                        android:tint="#333333" />
+                        app:tint="#333333" />
 
                     <ImageButton
                         android:id="@+id/btn_profile"
@@ -129,7 +129,10 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:padding="12dp">
-                            <ImageView android:id="@+id/icon_ph" android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_ph" android:tint="#E65100" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" />
+                            <ImageView android:id="@+id/icon_ph" android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_ph"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:tint="#E65100" />
                             <TextView android:id="@+id/badge_ph" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/bg_badge_normal" android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="2dp" android:paddingBottom="2dp" android:text="Normal" android:textColor="#2E7D32" android:textSize="10sp" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
                             <TextView android:id="@+id/label_ph" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="PH Level" android:textColor="#BF360C" android:textSize="13sp" android:textStyle="bold" app:layout_constraintBottom_toTopOf="@id/tv_ph_value" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/icon_ph" app:layout_constraintVertical_chainStyle="packed" />
                             <TextView android:id="@+id/tv_ph_value" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="–" android:textColor="#111111" android:textSize="30sp" android:textStyle="bold" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/label_ph" />
@@ -151,7 +154,10 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:padding="12dp">
-                            <ImageView android:id="@+id/icon_turbidity" android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_water_drop" android:tint="#00838F" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" />
+                            <ImageView android:id="@+id/icon_turbidity" android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_water_drop"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:tint="#00838F" />
                             <TextView android:id="@+id/badge_turbidity" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/bg_badge_normal" android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="2dp" android:paddingBottom="2dp" android:text="Normal" android:textColor="#2E7D32" android:textSize="10sp" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
                             <TextView android:id="@+id/label_turbidity" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Turbidity" android:textColor="#006064" android:textSize="13sp" android:textStyle="bold" app:layout_constraintBottom_toTopOf="@id/tv_turbidity_value" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/icon_turbidity" app:layout_constraintVertical_chainStyle="packed" />
                             <TextView android:id="@+id/tv_turbidity_value" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="–" android:textColor="#111111" android:textSize="30sp" android:textStyle="bold" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/label_turbidity" />
@@ -172,7 +178,10 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:padding="12dp">
-                            <ImageView android:id="@+id/icon_temperature" android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_thermometer" android:tint="#C62828" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" />
+                            <ImageView android:id="@+id/icon_temperature" android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_thermometer"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:tint="#C62828" />
                             <TextView android:id="@+id/badge_temperature" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/bg_badge_normal" android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="2dp" android:paddingBottom="2dp" android:text="Normal" android:textColor="#2E7D32" android:textSize="10sp" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
                             <TextView android:id="@+id/label_temperature" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Temperature" android:textColor="#B71C1C" android:textSize="13sp" android:textStyle="bold" app:layout_constraintBottom_toTopOf="@id/tv_temperature_value" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/icon_temperature" app:layout_constraintVertical_chainStyle="packed" />
                             <TextView android:id="@+id/tv_temperature_value" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="–" android:textColor="#111111" android:textSize="30sp" android:textStyle="bold" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/label_temperature" />
@@ -193,7 +202,10 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:padding="12dp">
-                            <ImageView android:id="@+id/icon_flow" android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_water_drop" android:tint="#2E7D32" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" />
+                            <ImageView android:id="@+id/icon_flow" android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_water_drop"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:tint="#2E7D32" />
                             <TextView android:id="@+id/badge_flow" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/bg_badge_normal" android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="2dp" android:paddingBottom="2dp" android:text="Normal" android:textColor="#2E7D32" android:textSize="10sp" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
                             <TextView android:id="@+id/label_flow" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Water Usage" android:textColor="#1B5E20" android:textSize="13sp" android:textStyle="bold" app:layout_constraintBottom_toTopOf="@id/tv_flow_value" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/icon_flow" app:layout_constraintVertical_chainStyle="packed" />
                             <TextView android:id="@+id/tv_flow_value" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="–" android:textColor="#111111" android:textSize="30sp" android:textStyle="bold" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/label_flow" />
@@ -280,7 +292,7 @@
                 android:contentDescription="Avatar"
                 android:padding="12dp"
                 android:src="@drawable/ic_person"
-                android:tint="#1A5C8F" />
+                app:tint="#1A5C8F" />
 
             <TextView
                 android:id="@+id/drawer_user_name"

@@ -361,7 +361,6 @@ public class CreateReport extends AppCompatActivity implements OnMapReadyCallbac
         btnSubmit.setEnabled(false);
         btnSubmit.setText("Submitting…");
 
-        // ── INSERT into Firebase — no background thread needed ────────────────
         FirebaseRepository.get().insertReport(report);
 
         Toast.makeText(this, "Report submitted", Toast.LENGTH_SHORT).show();

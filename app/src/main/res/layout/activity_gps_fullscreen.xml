@@ -85,7 +85,7 @@
                 android:textColor="#757575"
                 android:textSize="12sp"
                 android:layout_marginBottom="8dp"
-                app:drawableStartCompat="@drawable/ic_location_on"
+                app:drawableStartCompat="@drawable/ic_location"
                 app:drawableTint="#757575"/>
 
             <View
@@ -227,7 +227,7 @@
                     android:drawablePadding="4dp"
                     android:textColor="#757575"
                     android:textSize="12sp"
-                    app:drawableStartCompat="@drawable/ic_access_time"
+                    app:drawableStartCompat="@drawable/ic_clock"
                     app:drawableTint="#757575"/>
 
             </LinearLayout>
