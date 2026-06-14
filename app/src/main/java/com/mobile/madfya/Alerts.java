@@ -30,7 +30,9 @@ import com.mobile.madfya.data.MadfyaRepository;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Alerts &amp; Notifications Center — the activity feed, filterable by category. */
+/**
+ * Alerts &amp; Notifications Center — the activity feed, filterable by category.
+ */
 public class Alerts extends AppCompatActivity {
 
     private MadfyaRepository repo;
@@ -180,12 +182,4 @@ public class Alerts extends AppCompatActivity {
         });
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        BottomNavigationView nav = findViewById(R.id.bottom_nav);
-        if (nav != null) {
-            nav.setSelectedItemId(R.id.menu_alerts_alerts);
-        }
-    }
 }

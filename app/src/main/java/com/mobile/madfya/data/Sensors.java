@@ -8,7 +8,9 @@ import androidx.room.PrimaryKey;
 public  class Sensors {
 
     @PrimaryKey(autoGenerate = true)
-    public int id;
+    public int id; // auto log ID
+
+    public int filterId;
 
     //Sensor data add more if you need it dani
     public String ph_level;

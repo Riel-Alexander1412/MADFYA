@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
 
@@ -11,10 +12,10 @@ import java.util.List;
 
 @Dao
 public interface SensorsDao {
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(Sensors sensor);
 
-    @Query("SELECT * FROM sensors ORDER BY CurrentTimeStamp DESC")
+    @Query("SELECT * FROM sensors ORDER BY CurrentTimeStamp ASC")
     LiveData<List<Sensors>> getAll();
 
     @Query("SELECT * FROM sensors ORDER BY CurrentTimeStamp DESC")
@@ -58,4 +59,9 @@ public interface SensorsDao {
 
     @Query("SELECT COUNT(*) FROM sensors")
     int count();
+    @Query("SELECT * FROM sensors WHERE filterId = :filterId ORDER BY CurrentTimeStamp DESC LIMIT 1")
+    LiveData<Sensors> getLatestByFilter(int filterId);
+
+    @Query("SELECT * FROM sensors WHERE filterId = :filterId ORDER BY CurrentTimeStamp ASC")
+    LiveData<List<Sensors>> getHistoryByFilter(int filterId);
 }

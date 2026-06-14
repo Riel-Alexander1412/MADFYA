@@ -23,6 +23,11 @@ public class Reports {
     //Location
     public double latitude;
     public double longitude;
+
+    public double ph;
+    public double turbidity;
+    public double temperature;
+    public double usage;
     public String ImagePath;
     public Reports() {}
     public Reports(String title, String description, String category, int reportedBy, double latitude, double longitude, String imagePath) {

@@ -32,6 +32,7 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract SensorsDao sensorsDao();
     public abstract ReportDao reportDao();
 
+
     private static volatile AppDatabase instance;
 
     /** Shared pool for all database writes. */
