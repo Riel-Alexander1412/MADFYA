@@ -54,18 +54,21 @@
         android:id="@+id/cardCoordInfo"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp"
+        android:layout_marginEnd="8dp"
         app:cardCornerRadius="16dp"
         app:cardElevation="4dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toStartOf="@id/cardNavigate">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="12dp">
 
             <!-- Filter + coords -->
             <TextView
@@ -73,9 +76,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="#005A9E"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="4dp"/>
+                android:layout_marginBottom="2dp"/>
 
             <TextView
                 android:id="@+id/tvFullCoords"
@@ -83,8 +86,8 @@
                 android:layout_height="wrap_content"
                 android:drawablePadding="6dp"
                 android:textColor="#757575"
-                android:textSize="12sp"
-                android:layout_marginBottom="8dp"
+                android:textSize="11sp"
+                android:layout_marginBottom="6dp"
                 app:drawableStartCompat="@drawable/ic_location"
                 app:drawableTint="#757575"/>
 
@@ -92,7 +95,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:background="#E0E0E0"
-                android:layout_marginBottom="10dp"/>
+                android:layout_marginBottom="8dp"/>
 
             <!-- Sensor grid -->
             <GridLayout
@@ -100,7 +103,7 @@
                 android:layout_height="wrap_content"
                 android:columnCount="2"
                 android:rowCount="2"
-                android:layout_marginBottom="10dp">
+                android:layout_marginBottom="8dp">
 
                 <!-- PH -->
                 <LinearLayout
@@ -108,20 +111,20 @@
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:orientation="vertical"
-                    android:padding="6dp">
+                    android:padding="4dp">
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="PH Level"
                         android:textColor="#BF360C"
-                        android:textSize="11sp"
+                        android:textSize="10sp"
                         android:textStyle="bold"/>
                     <TextView
                         android:id="@+id/tvFullPh"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="#212121"
-                        android:textSize="20sp"
+                        android:textSize="17sp"
                         android:textStyle="bold"/>
                 </LinearLayout>
 
@@ -131,20 +134,20 @@
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:orientation="vertical"
-                    android:padding="6dp">
+                    android:padding="4dp">
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Turbidity"
                         android:textColor="#006064"
-                        android:textSize="11sp"
+                        android:textSize="10sp"
                         android:textStyle="bold"/>
                     <TextView
                         android:id="@+id/tvFullTurbidity"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="#212121"
-                        android:textSize="20sp"
+                        android:textSize="17sp"
                         android:textStyle="bold"/>
                 </LinearLayout>
 
@@ -154,20 +157,20 @@
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:orientation="vertical"
-                    android:padding="6dp">
+                    android:padding="4dp">
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Temperature"
                         android:textColor="#B71C1C"
-                        android:textSize="11sp"
+                        android:textSize="10sp"
                         android:textStyle="bold"/>
                     <TextView
                         android:id="@+id/tvFullTemp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="#212121"
-                        android:textSize="20sp"
+                        android:textSize="17sp"
                         android:textStyle="bold"/>
                 </LinearLayout>
 
@@ -177,20 +180,20 @@
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:orientation="vertical"
-                    android:padding="6dp">
+                    android:padding="4dp">
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Water Usage"
                         android:textColor="#1B5E20"
-                        android:textSize="11sp"
+                        android:textSize="10sp"
                         android:textStyle="bold"/>
                     <TextView
                         android:id="@+id/tvFullUsage"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="#212121"
-                        android:textSize="20sp"
+                        android:textSize="17sp"
                         android:textStyle="bold"/>
                 </LinearLayout>
 
@@ -200,13 +203,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:background="#E0E0E0"
-                android:layout_marginBottom="10dp"/>
+                android:layout_marginBottom="8dp"/>
 
             <!-- Date + time -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
 
                 <TextView
                     android:id="@+id/tvFullDate"
@@ -215,7 +219,7 @@
                     android:layout_weight="1"
                     android:drawablePadding="4dp"
                     android:textColor="#757575"
-                    android:textSize="12sp"
+                    android:textSize="11sp"
                     app:drawableStartCompat="@drawable/ic_calendar"
                     app:drawableTint="#757575"/>
 
@@ -226,13 +230,46 @@
                     android:layout_weight="1"
                     android:drawablePadding="4dp"
                     android:textColor="#757575"
-                    android:textSize="12sp"
+                    android:textSize="11sp"
                     app:drawableStartCompat="@drawable/ic_clock"
                     app:drawableTint="#757575"/>
 
             </LinearLayout>
 
         </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Navigate card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardNavigate"
+        android:layout_width="64dp"
+        android:layout_height="0dp"
+        android:layout_marginEnd="12dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:layout_constraintTop_toTopOf="@id/cardCoordInfo"
+        app:layout_constraintBottom_toBottomOf="@id/cardCoordInfo"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="8dp">
+
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:contentDescription="Navigate"
+                android:src="@drawable/ic_route"
+                app:tint="@color/brand_blue" />
+
+        </LinearLayout>
+
     </com.google.android.material.card.MaterialCardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

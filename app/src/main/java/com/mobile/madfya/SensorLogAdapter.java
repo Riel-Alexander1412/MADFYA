@@ -24,9 +24,11 @@ import java.util.List;
 public class SensorLogAdapter extends RecyclerView.Adapter<SensorLogAdapter.ViewHolder> {
 
     private final List<SensorLog> logs;
+    private final boolean isAdmin;
 
-    public SensorLogAdapter(List<SensorLog> logs) {
+    public SensorLogAdapter(List<SensorLog> logs, boolean isAdmin) {
         this.logs = logs;
+        this.isAdmin = isAdmin;
     }
 
     @NonNull
@@ -45,6 +47,13 @@ public class SensorLogAdapter extends RecyclerView.Adapter<SensorLogAdapter.View
         holder.tvItemTurbidity.setText(String.valueOf(log.turbidity));
         holder.tvItemTemp.setText(log.temperature + "°C");
         holder.tvItemUsage.setText(log.usage + "L");
+
+        // Edit/delete are admin-only actions. Visibility (not just the click
+        // listener) is toggled so non-admins don't see the controls at all,
+        // rather than seeing a disabled or dead button.
+        int adminControlsVisibility = isAdmin ? View.VISIBLE : View.GONE;
+        holder.btnEditLog.setVisibility(adminControlsVisibility);
+        holder.btnDeleteLog.setVisibility(adminControlsVisibility);
 
         holder.btnEditLog.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), EditLog.class);

@@ -1,7 +1,11 @@
 package com.mobile.madfya;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
@@ -38,6 +42,7 @@ public class GpsFullscreen extends AppCompatActivity implements OnMapReadyCallba
 
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
 
+        findViewById(R.id.cardNavigate).setOnClickListener(v -> openNavigation());
 
         ((TextView) findViewById(R.id.tvFullFilter)).setText("Filter: " + filterName);
         ((TextView) findViewById(R.id.tvFullCoords)).setText("GPS: " + latitude + ", " + longitude);
@@ -63,5 +68,24 @@ public class GpsFullscreen extends AppCompatActivity implements OnMapReadyCallba
         LatLng coords = new LatLng(latitude, longitude);
         googleMap.addMarker(new MarkerOptions().position(coords).title(filterName));
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(coords, 15f));
+    }
+    
+    private void openNavigation() {
+        Uri navUri = Uri.parse("google.navigation:q=" + latitude + "," + longitude);
+        Intent mapIntent = new Intent(Intent.ACTION_VIEW, navUri);
+        mapIntent.setPackage("com.google.android.apps.maps");
+
+        try {
+            startActivity(mapIntent);
+        } catch (ActivityNotFoundException e) {
+            Uri geoUri = Uri.parse("geo:" + latitude + "," + longitude
+                    + "?q=" + latitude + "," + longitude + "(" + filterName + ")");
+            Intent fallbackIntent = new Intent(Intent.ACTION_VIEW, geoUri);
+            try {
+                startActivity(fallbackIntent);
+            } catch (ActivityNotFoundException ex) {
+                Toast.makeText(this, "No app found to show directions", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }

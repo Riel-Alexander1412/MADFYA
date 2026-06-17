@@ -38,21 +38,23 @@ public class History extends AppCompatActivity {
             v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
             return insets;
         });
-        // Toolbar
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
 
         rvHistoricalLedger    = findViewById(R.id.rvHistoricalLedger);
         masterHistoricalChart = findViewById(R.id.masterHistoricalChart);
         chipGroupMetrics      = findViewById(R.id.chipGroupMetrics);
+        String role = getSharedPreferences(Login.PREFS_NAME, MODE_PRIVATE)
+                .getString(Login.KEY_ROLE, null);
+        boolean isAdmin = Login.ROLE_ADMIN.equals(role) || Login.ROLE_MAINTENANCE.equals(role);
 
         logs    = new ArrayList<>();
-        adapter = new SensorLogAdapter(logs);
+        adapter = new SensorLogAdapter(logs, isAdmin);
         rvHistoricalLedger.setLayoutManager(new LinearLayoutManager(this));
         rvHistoricalLedger.setAdapter(adapter);
 
         repo = FirebaseRepository.get();
 
-        // ── Observe sensors from Firebase ─────────────────────────────────────
+        // Observe sensors from Firebase
         repo.getAllSensors().observe(this, sensors -> {
             logs.clear();
 
@@ -73,7 +75,6 @@ public class History extends AppCompatActivity {
                 logs.add(new SensorLog(s.filterId, name, coords, date, time, ph, turbidity, temperature, usage, s.latitude, s.longitude));
             }
             adapter.notifyDataSetChanged();
-            // FIXED: Pass all three required arguments
             loadChart("ph", Color.parseColor("#E65100"), Color.parseColor("#FFCC80"));
         });
 
@@ -196,7 +197,6 @@ public class History extends AppCompatActivity {
             log.gpsCoords   = data.getStringExtra("gpsCoords");
 
             adapter.notifyItemChanged(pos);
-            // FIXED: Pass all three arguments
             loadChart("ph", Color.parseColor("#E65100"), Color.parseColor("#FFCC80"));
         }
     }
