@@ -10,6 +10,7 @@ public class Comment {
     public String author;
     public String text;
     public long timestamp;
+    public Comment() {}
 
     public Comment(String noticeId, String author, String text, long timestamp) {
         this.noticeId = noticeId;
