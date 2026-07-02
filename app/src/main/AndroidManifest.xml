@@ -67,9 +67,6 @@
         <activity
             android:name=".EditLog"
             android:exported="false" />
-        <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyCKpVcdRNBIeAuFwjGCP7GACtP_VWsvWqU" />
     </application>
 
 </manifest>
